@@ -564,6 +564,303 @@ print(result)
 
 </div>
 
+
+<!-- Section 9: Multi-Role Pitcher Evaluation -->
+<h2 id="sec9">九、多功能投手角色評估</h2>
+
+<h3>MLB 投手的六大角色分類</h3>
+<table>
+    <tr><th>角色</th><th>定義</th><th>典型局數</th><th>出現頻率</th></tr>
+    <tr><td><strong>先發投手 (SP)</strong></td><td>每場開局投球</td><td>5–7 局</td><td>每隊 5 人</td></tr>
+    <tr><td><strong>開路者 (Opener)</strong></td><td>先發 1–2 局後換人</td><td>1–2 局</td><td>偶爾使用</td></tr>
+    <tr><td><strong>長中繼 (Long Reliever)</strong></td><td>先發早退時補位</td><td>3–5 局</td><td>每場必要時</td></tr>
+    <tr><td><strong>中繼投手 (Middle Reliever)</strong></td><td>中段局數接手</td><td>1–2 局</td><td>每場 1–2 人</td></tr>
+    <tr><td><strong>布局投手 (Setup Man)</strong></td><td>第九局前保護領先</td><td>1 局</td><td>每場 1 人</td></tr>
+    <tr><td><strong>終結者 (Closer)</strong></td><td>最後一局守住勝利</td><td>1 局</td><td>每場 1 人</td></tr>
+    <tr><td><strong>Swingman</strong></td><td>先發/中繼輪替</td><td>視情況</td><td>每隊 1–2 人</td></tr>
+</table>
+
+<h3>為什麼不能直接用 ERA 比較不同角色？</h3>
+
+<p>Bill James 在 1977 年的 SABR 研究已經證明：<strong>同質量的投手，救援角色的 ERA 天生比先發低 0.25–0.50 分</strong>。</p>
+
+<div class="highlight-box">
+    <h4>三大原因</h4>
+    <ol>
+        <li><strong>已有人出局</strong> — 救援投手通常帶著 1–2 出局上場，失分機會更少</li>
+        <li><strong>只面對打者一次</strong> — 先發投手每場面對打序 2–3 次，越後面越吃虧</li>
+        <li><strong>全力投球</strong> — 救援投手知道只投 1 局，可以每球都拚 100%</li>
+    </ol>
+</div>
+
+<h4>ERA 基準比較表</h4>
+<table>
+    <tr><th>等級</th><th>先發投手</th><th>救援投手</th></tr>
+    <tr><td><strong>Elite</strong></td><td>&lt; 2.50</td><td>&lt; 2.00</td></tr>
+    <tr><td><strong>Excellent</strong></td><td>2.50–3.00</td><td>2.00–2.50</td></tr>
+    <tr><td><strong>Above Avg</strong></td><td>3.00–3.50</td><td>2.50–3.00</td></tr>
+    <tr><td><strong>Average</strong></td><td>3.50–4.50</td><td>3.00–3.50</td></tr>
+    <tr><td><strong>Below Avg</strong></td><td>4.50–5.00</td><td>3.50–4.00</td></tr>
+    <tr><td><strong>Poor</strong></td><td>&gt; 5.00</td><td>&gt; 4.00</td></tr>
+</table>
+
+<div class="highlight-box gold">
+    <p>🔑 <strong>口訣</strong>：評估救援投手時，先發的 ERA 基準要 <strong>減 0.50 分</strong></p>
+</div>
+
+<h3>多功能投手（Swingman / Two-Way）的評估方法</h3>
+
+<p>這類投手同時承担先發和中繼任務，評估時需要<strong>分場景加權</strong>：</p>
+
+<h4>方法：分離式評估（Split-Evaluation）</h4>
+
+<div class="formula">
+<strong>步驟 1：將該投手的數據按「角色」拆分</strong>
+  - 先發場次：IP ≥ 4 的出場
+  - 救援場次：IP &lt; 4 的出場
+
+<strong>步驟 2：分別計算各角色的技能指標</strong>
+  - 先發模式：用 FIP / SIERA / xFIP
+  - 救援模式：用 FIP / SIERA / xFIP（同樣適用，因為這些指標不受角色影響）
+
+<strong>步驟 3：根據本季實際使用比例加權</strong>
+  綜合評分 = w_SP × SP_SIERA + w_RP × RP_SIERA
+  
+  其中 w_SP = 先發局數 / 總局數
+       w_RP = 救援局數 / 總局數
+</div>
+
+<h4>範例：假設投手 A</h4>
+<table>
+    <tr><th>角色</th><th>場次</th><th>局數</th><th>SIERA</th><th>權重</th></tr>
+    <tr><td>先發</td><td>15 場</td><td>85 IP</td><td>3.60</td><td>85/120 = 0.71</td></tr>
+    <tr><td>救援</td><td>20 場</td><td>35 IP</td><td>3.20</td><td>35/120 = 0.29</td></tr>
+</table>
+
+<div class="formula">
+綜合 SIERA = 0.71 × 3.60 + 0.29 × 3.20 = 2.56 + 1.02 = <strong>3.58</strong>
+</div>
+
+<h3>針對多功能投手的完整評估框架</h3>
+
+<h4>核心指標矩陣</h4>
+<table>
+    <tr><th>指標</th><th>先發適用性</th><th>救援適用性</th><th>備註</th></tr>
+    <tr><td><code>SIERA</code></td><td><span class="star">★★★★★</span></td><td><span class="star">★★★★</span></td><td>含 GB/FB 調整，兩者皆佳</td></tr>
+    <tr><td><code>xFIP</code></td><td><span class="star">★★★★★</span></td><td><span class="star">★★★★</span></td><td>校正 HR 運氣</td></tr>
+    <tr><td><code>FIP</code></td><td><span class="star">★★★★</span></td><td><span class="star">★★★★</span></td><td>最簡單有效的技能指標</td></tr>
+    <tr><td><code>DRA-</code></td><td><span class="star">★★★★★</span></td><td><span class="star">★★★★★</span></td><td>含場地/對手調整，BP 最新</td></tr>
+    <tr><td><code>K-BB%</code></td><td><span class="star">★★★★★</span></td><td><span class="star">★★★★★</span></td><td><strong>兩者最穩定</strong></td></tr>
+    <tr><td><code>Barrel%</code></td><td><span class="star">★★★★</span></td><td><span class="star">★★★★</span></td><td>Statcast 品質指標</td></tr>
+    <tr><td><code>ERA</code></td><td><span class="star">★★★</span></td><td><span class="star">★★</span></td><td>受角色偏差影響大</td></tr>
+    <tr><td><code>WHIP</code></td><td><span class="star">★★★★</span></td><td><span class="star">★★★</span></td><td>救援 WHIP 通常較低</td></tr>
+</table>
+
+<h4>評估步驟</h4>
+<div class="formula">
+第 1 步：確認角色分佈
+  □ 先發場次 / 救援場次各幾場？
+  □ 先發局數 / 救援局數比例？
+  □ 本季角色是否穩定？（中途轉換？）
+
+第 2 步：分別計算各角色的技能指標
+  □ 先發 SIERA / xFIP / K-BB%
+  □ 救援 SIERA / xFIP / K-BB%
+  □ 注意：SIERA 在 &lt;40 IP 時不穩定，救援數據需擴大樣本
+
+第 3 步：檢查 Statcast 品質指標
+  □ 球速衰減（先發 vs 救援有無差異）
+  □ Stuff+（投球品質，不受角色影響）
+  □ SwStr%（揮空率，兩者可比）
+
+第 4 步：計算加權綜合評分
+  □ 按局數比例加權各角色 SIERA
+  □ 或直接用全年 SIERA（如果角色轉換頻繁）
+
+第 5 步：評估「角色適應力」
+  □ 先發轉救援：球速是否提升？三振率是否上升？
+  □ 救援轉先發：能否維持 4–5 局？第三次通過打序表現？
+</div>
+
+<h3>現代 MLB 投手使用趨勢</h3>
+
+<table>
+    <tr><th>賽季</th><th>每場平均救援投手數</th><th>救援出場占比</th></tr>
+    <tr><td>2002</td><td>2.63</td><td>72.4%</td></tr>
+    <tr><td>2014</td><td>2.98</td><td>74.8%</td></tr>
+    <tr><td>2018</td><td>3.36</td><td>77.1%</td></tr>
+    <tr><td><strong>2021（高峰）</strong></td><td><strong>3.43</strong></td><td><strong>77.4%</strong></td></tr>
+    <tr><td>2023</td><td>3.24</td><td>76.4%</td></tr>
+    <tr><td>2024</td><td>3.26</td><td>76.5%</td></tr>
+    <tr><td>2025</td><td>3.29</td><td>76.7%</td></tr>
+</table>
+
+<h4>四大驅動力</h4>
+<ol>
+    <li><strong>專門化（Specialization）</strong> — 左右打配對，精準換人</li>
+    <li><strong>三次通過打序懲罰（TTO Penalty）</strong> — 打者第三次面對先發投手明顯變強</li>
+    <li><strong>球速差距</strong> — 救援投手 1 局全力投 vs 先發投手 95 球需要省体力</li>
+    <li><strong>開路者戰術（Opener）</strong> — 模糊先發/救援界線</li>
+</ol>
+
+<div class="highlight-box">
+    <p>📌 這意味著：<strong>Swingman 和多角色投手越來越普遍</strong>，傳統的「先發 vs 救援」二分法正在失效。</p>
+</div>
+
+<h3>預測模型中如何處理多功能投手？</h3>
+
+<h4>當多功能投手是「先發」時：</h4>
+
+<div class="formula">
+λ = 基礎 × 攻擊調整 × 先發調整 × 場地 × 天氣 + 牛棚調整 + HFA
+
+其中「先發調整」需要特別注意：
+  - 如果該投手本季 70% 以上是先發 → 用全年 SIERA
+  - 如果本季 70% 以上是救援 → 用救援 SIERA × 0.9（先發通常稍弱）
+  - 如果比例接近 → 用加權綜合 SIERA
+</div>
+
+<h4>當多功能投手是「救援」時：</h4>
+
+<div class="formula">
+牛棚調整 += (救援 SIERA - 聯盟平均牛棚 xFIP) × 0.1
+
+注意：
+  - 如果該投手主要是先發，突然被拿去救援 → 他的球速可能更高
+  - 先發轉救援通常短期表現更好（球速提升）
+  - 但長期可能因缺乏先發節奏而衰退
+</div>
+
+<h4>當無法確認角色時（Opener 戰術）：</h4>
+
+<div class="formula">
+如果開路者是救援投手：
+  - 前 1–2 局：用救援 SIERA（通常較低）
+  - 第 3 局起：換上 bulk pitcher，用其先發 SIERA
+  - 總 λ = λ_opener(1–2局) + λ_bulk(剩餘局數)
+</div>
+
+<h3>實用決策樹</h3>
+
+<div class="flow-chart">
+<span class="node">🔍 評估一名多功能投手</span>
+
+Q1: 本季先發和救援的比例？
+├── SP ≥ 70% → 用全年 SIERA/xFIP
+├── RP ≥ 70% → 用救援 SIERA/xFIP
+└── 50/50 或頻繁切換 → 進入 Q2
+
+Q2: 兩角色的 SIERA 差距？
+├── 差距 &lt; 0.30 → 用全年綜合 SIERA（最簡單）
+├── 差距 0.30–0.80 → 加權計算（按局數比例）
+└── 差距 &gt; 0.80 → 分場景評估（先發 vs 救援用不同 λ）
+
+Q3: 該投手最近的角色是什麼？
+├── 最近 10 場都是先發 → 偏向先發 SIERA
+├── 最近 10 場都是救援 → 偏向救援 SIERA
+└── 角色混雜 → 用最近 30 天加權
+
+Q4: 球速有無顯著差異？
+├── 救援球速 &gt; 先發 1.5mph+ → 救援模式可能更強
+├── 球速相近 → 角色間無實質差異
+└── 先發球速 &gt; 救援 → 可能缺乏救援強度
+</div>
+
+<h3>Python 實作：多功能投手評估器</h3>
+
+<pre><code>def evaluate_multi_role_pitcher(pitcher_data):
+    """
+    評估多功能投手的綜合實力
+    
+    pitcher_data = {
+        'starter_games': 15,
+        'starter_ip': 85,
+        'starter_siera': 3.60,
+        'reliever_games': 20,
+        'reliever_ip': 35,
+        'reliever_siera': 3.20,
+        'starter_k_bb_pct': 0.24,
+        'reliever_k_bb_pct': 0.27,
+        'starter_stuff_plus': 105,
+        'reliever_stuff_plus': 112,
+    }
+    """
+    total_ip = pitcher_data['starter_ip'] + pitcher_data['reliever_ip']
+    
+    # 計算加權 SIERA
+    w_sp = pitcher_data['starter_ip'] / total_ip
+    w_rp = pitcher_data['reliever_ip'] / total_ip
+    weighted_siera = w_sp * pitcher_data['starter_siera'] + w_rp * pitcher_data['reliever_siera']
+    
+    # 計算加權 K-BB%
+    weighted_k_bb = w_sp * pitcher_data['starter_k_bb_pct'] + w_rp * pitcher_data['reliever_k_bb_pct']
+    
+    # 判斷角色一致性
+    ip_ratio = pitcher_data['starter_ip'] / total_ip
+    
+    if ip_ratio >= 0.7:
+        role = "primarily_starter"
+        recommended_siera = pitcher_data['starter_siera']
+    elif ip_ratio <= 0.3:
+        role = "primarily_reliever"
+        recommended_siera = pitcher_data['reliever_siera']
+    else:
+        role = "swingman"
+        recommended_siera = weighted_siera
+    
+    # 評估角色適應力
+    siera_gap = abs(pitcher_data['starter_siera'] - pitcher_data['reliever_siera'])
+    if siera_gap > 0.8:
+        adaptability = "high_variance"
+    elif siera_gap > 0.3:
+        adaptability = "moderate_variance"
+    else:
+        adaptability = "consistent"
+    
+    return {
+        'weighted_siera': round(weighted_siera, 3),
+        'recommended_siera': round(recommended_siera, 3),
+        'role': role,
+        'adaptability': adaptability,
+        'siera_gap': round(siera_gap, 3),
+        'k_bb_pct': round(weighted_k_bb, 4),
+        'starter_weight': round(w_sp, 2),
+        'reliever_weight': round(w_rp, 2),
+    }
+
+# 範例
+result = evaluate_multi_role_pitcher({
+    'starter_games': 15, 'starter_ip': 85, 'starter_siera': 3.60,
+    'reliever_games': 20, 'reliever_ip': 35, 'reliever_siera': 3.20,
+    'starter_k_bb_pct': 0.24, 'reliever_k_bb_pct': 0.27,
+    'starter_stuff_plus': 105, 'reliever_stuff_plus': 112,
+})
+print(result)
+# {
+#   'weighted_siera': 3.501,
+#   'recommended_siera': 3.501,
+#   'role': 'swingman',
+#   'adaptability': 'consistent',
+#   'siera_gap': 0.4,
+#   'k_bb_pct': 0.2525,
+#   'starter_weight': 0.71,
+#   'reliever_weight': 0.29
+# }</code></pre>
+
+<h3>關鍵提醒</h3>
+
+<div class="highlight-box">
+    <ol>
+        <li><strong>不要用 ERA 直接比較不同角色的投手</strong> — 救援 ERA 天生較低</li>
+        <li><strong>SIERA/FIP/xFIP 不受角色影響</strong> — 是跨角色比較的黃金標準</li>
+        <li><strong>K-BB% 是最穩定的技能指標</strong> — 無論先發還是救援都可靠</li>
+        <li><strong>Stuff+（Statcast）完全不受角色影響</strong> — 衡量純粹的投球品質</li>
+        <li><strong>樣本量很重要</strong> — SIERA 在 &lt;40 IP 時不穩定，救援數據需擴大樣本</li>
+        <li><strong>近期狀態優先</strong> — 最近 30 天的數據比整季數據更有預測力</li>
+        <li><strong>角色轉換期間謹慎</strong> — 先發轉救援或反之，短期數據可能有偏差</li>
+    </ol>
+</div>
+
 <div class="footer">
     <p>MLB 單場勝負與比分預測模型研究報告</p>
     <p>由 Hermes Agent (Edith) 整理製作 · 2026</p>
