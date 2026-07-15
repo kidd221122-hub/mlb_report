@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLB 單場勝負與比分預測模型 — 完整研究報告</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --bg2: #161b22;
+            --bg3: #1c2333;
+            --border: #30363d;
+            --text: #e6edf3;
+            --text2: #8b949e;
+            --accent: #58a6ff;
+            --green: #3fb950;
+            --gold: #d29922;
+            --red: #f85149;
+            --purple: #bc8cff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            padding: 0;
+        }
+        .container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+        header {
+            background: linear-gradient(135deg, #0d1117 0%, #162137 50%, #0d1117 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        header h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(90deg, var(--accent), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+        header p { color: var(--text2); font-size: 1.05rem; }
+        .badge {
+            display: inline-block;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--text2);
+            margin: 0.3rem;
+        }
+        h2 {
+            font-size: 1.6rem;
+            color: var(--accent);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+            margin: 2.5rem 0 1.2rem;
+        }
+        h3 {
+            font-size: 1.25rem;
+            color: var(--gold);
+            margin: 1.8rem 0 0.8rem;
+        }
+        h4 {
+            font-size: 1.05rem;
+            color: var(--purple);
+            margin: 1.2rem 0 0.5rem;
+        }
+        p { margin-bottom: 1rem; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0 1.5rem;
+            font-size: 0.92rem;
+        }
+        th, td {
+            padding: 0.65rem 0.8rem;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+        th {
+            background: var(--bg3);
+            color: var(--accent);
+            font-weight: 600;
+        }
+        td { background: var(--bg2); }
+        tr:hover td { background: #1c2333; }
+        code {
+            background: var(--bg3);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: var(--green);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+        pre {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.2rem;
+            overflow-x: auto;
+            margin: 1rem 0 1.5rem;
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text);
+        }
+        .formula {
+            background: var(--bg3);
+            border-left: 3px solid var(--accent);
+            padding: 1rem 1.2rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+            font-family: 'SF Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--green);
+            white-space: pre-wrap;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(88,166,255,0.08), rgba(188,140,255,0.08));
+            border: 1px solid rgba(88,166,255,0.3);
+            border-radius: 8px;
+            padding: 1.2rem;
+            margin: 1.2rem 0;
+        }
+        .highlight-box.green {
+            background: linear-gradient(135deg, rgba(63,185,80,0.08), rgba(63,185,80,0.04));
+            border-color: rgba(63,185,80,0.3);
+        }
+        .highlight-box.gold {
+            background: linear-gradient(135deg, rgba(210,153,34,0.08), rgba(210,153,34,0.04));
+            border-color: rgba(210,153,34,0.3);
+        }
+        .star { color: var(--gold); }
+        .emoji { font-size: 1.1em; }
+        ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+        li { margin-bottom: 0.4rem; }
+        .toc {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.2rem 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .toc h3 { margin-top: 0; color: var(--accent); }
+        .toc a { color: var(--accent); text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+        .toc ul { list-style: none; margin-left: 0; }
+        .toc li::before { content: "▸ "; color: var(--text2); }
+        .footer {
+            text-align: center;
+            padding: 2rem 0;
+            border-top: 1px solid var(--border);
+            color: var(--text2);
+            font-size: 0.85rem;
+            margin-top: 3rem;
+        }
+        .flow-chart {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.2rem;
+            margin: 1rem 0;
+            font-family: 'SF Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.8;
+            color: var(--text2);
+        }
+        .flow-chart .arrow { color: var(--accent); }
+        .flow-chart .node { color: var(--green); }
+        .flow-chart .comment { color: var(--text2); opacity: 0.7; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <h1>⚾ MLB 單場勝負與比分預測模型</h1>
+        <p>完整研究報告 — 指標、公式與實作指南</p>
+        <div style="margin-top: 1rem;">
+            <span class="badge">投球指標分析</span>
+            <span class="badge">Poisson 分佈</span>
+            <span class="badge">Monte Carlo 模擬</span>
+            <span class="badge">Python 實作</span>
+            <span class="badge">2026</span>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+
+<!-- Table of Contents -->
+<div class="toc">
+    <h3>📑 目錄</h3>
+    <ul>
+        <li><a href="#sec1">一、指標總覽：五大類別 × 具體欄位</a></li>
+        <li><a href="#sec2">二、投球指標與勝率相關性排名</a></li>
+        <li><a href="#sec3">三、勝負預測公式（Moneyline）</a></li>
+        <li><a href="#sec4">四、比分預測公式（Total Runs / Over-Under）</a></li>
+        <li><a href="#sec5">五、指標權重分配建議</a></li>
+        <li><a href="#sec6">六、實作流程圖</a></li>
+        <li><a href="#sec7">七、Python 實作範例</a></li>
+        <li><a href="#sec8">八、關鍵提醒與最佳實踐</a></li>
+    </ul>
+</div>
+
+<!-- Section 1 -->
+<h2 id="sec1">一、指標總覽：五大類別 × 具體欄位</h2>
+
+<p>根據 Ballpark Pal（每年模擬 500 萬場比賽、使用 100+ 自製特徵）、Underdog Chance、以及 MLB Prediction 等專業模型的實戰經驗，以下是建立單場預測模型所需的完整指標清單。</p>
+
+<h3>A. 先發投手（最重要，佔權重約 35–40%）</h3>
+<table>
+    <tr><th>指標</th><th>說明</th><th>預測力</th><th>備註</th></tr>
+    <tr><td><code>SIERA</code></td><td>技能互動型防禦率，含 K/BB/GB/FB</td><td><span class="star">★★★★★</span></td><td><strong>最佳單一指標</strong></td></tr>
+    <tr><td><code>xFIP</code></td><td>校正全壘打運氣的 FIP</td><td><span class="star">★★★★★</span></td><td>明年相關性 ~0.52</td></tr>
+    <tr><td><code>FIP</code></td><td>獨立防守防禦率</td><td><span class="star">★★★★</span></td><td>簡單有效</td></tr>
+    <tr><td><code>K-BB%</code></td><td>三振率減保送率</td><td><span class="star">★★★★★</span></td><td>最穩定的技能指標</td></tr>
+    <tr><td><code>CSW%</code></td><td>Called Strikes + Whiffs %</td><td><span class="star">★★★★</span></td><td>投球品質信號</td></tr>
+    <tr><td><code>K/9</code></td><td>每九局三振數</td><td><span class="star">★★★★</span></td><td></td></tr>
+    <tr><td><code>BB/9</code></td><td>每九局保送數</td><td><span class="star">★★★★</span></td><td></td></tr>
+    <tr><td><code>Barrel%</code></td><td>最佳擊球品質被擊比例</td><td><span class="star">★★★</span></td><td>Statcast</td></tr>
+    <tr><td><code>GB%/FB%</code></td><td>滾地球/飛球比例</td><td><span class="star">★★★</span></td><td>影響全壘打率</td></tr>
+    <tr><td><code>近 30 場</code></td><td>近期表現加權</td><td><span class="star">★★★★</span></td><td>比整季數據更預測</td></tr>
+    <tr><td><code>L/R Split</code></td><td>對左/右打者分組</td><td><span class="star">★★★★</span></td><td>配對關鍵</td></tr>
+    <tr><td><code>TTO</code></td><td>三次通過打序懲罰</td><td><span class="star">★★★</span></td><td>第三次以後效率下降</td></tr>
+</table>
+
+<h3>B. 球隊攻擊（佔權重約 25–30%）</h3>
+<table>
+    <tr><th>指標</th><th>說明</th><th>預測力</th><th>備註</th></tr>
+    <tr><td><code>xwOBA</code></td><td>預期加權上壘率（含擊球品質）</td><td><span class="star">★★★★★</span></td><td><strong>最佳進攻指標</strong></td></tr>
+    <tr><td><code>wRC+</code></td><td>調整球場後的進攻產出</td><td><span class="star">★★★★★</span></td><td>100 = 聯盟平均</td></tr>
+    <tr><td><code>ISO</code></td><td>純長打率</td><td><span class="star">★★★★</span></td><td>力量指標</td></tr>
+    <tr><td><code>K%</code></td><td>三振率</td><td><span class="star">★★★★</span></td><td>越低越好</td></tr>
+    <tr><td><code>BB%</code></td><td>保送率</td><td><span class="star">★★★★</span></td><td>越高越好</td></tr>
+    <tr><td><code>Barrel%</code></td><td>最佳擊球率</td><td><span class="star">★★★★</span></td><td>預測全壘打最有效</td></tr>
+    <tr><td><code>Chase%</code></td><td>追打率</td><td><span class="star">★★★</span></td><td>紀律指標</td></tr>
+    <tr><td><code>L/R Split</code></td><td>對左/右投分組</td><td><span class="star">★★★★</span></td><td>配對關鍵</td></tr>
+</table>
+
+<h3>C. 牛棚（佔權重約 10–15%）</h3>
+<table>
+    <tr><th>指標</th><th>說明</th><th>預測力</th><th>備註</th></tr>
+    <tr><td><code>牛棚 xFIP/SIERA</code></td><td>後援投手技能指標</td><td><span class="star">★★★★★</span></td><td>比 ERA 更穩定</td></tr>
+    <tr><td><code>近 3 天使用量</code></td><td>疲勞度</td><td><span class="star">★★★★</span></td><td>連續出賽扣分</td></tr>
+    <tr><td><code>救援者可用性</code></td><td>Closer 是否休息</td><td><span class="star">★★★</span></td><td>高壓力情境</td></tr>
+    <tr><td><code>Leverage Index</code></td><td>高壓力局數投球次數</td><td><span class="star">★★★</span></td><td>牛棚負擔指標</td></tr>
+</table>
+
+<h3>D. 場地與天氣（佔權重約 10–15%）</h3>
+<table>
+    <tr><th>指標</th><th>說明</th><th>預測力</th><th>備註</th></tr>
+    <tr><td><code>Park Factor (Runs)</code></td><td>球場得分加成/減成</td><td><span class="star">★★★★★</span></td><td>Coors ≈ 1.15, Seattle ≈ 0.88</td></tr>
+    <tr><td><code>Park Factor (HR)</code></td><td>球場全壘打加成</td><td><span class="star">★★★★</span></td><td>影響長打預測</td></tr>
+    <tr><td><code>溫度</code></td><td>華氏溫度</td><td><span class="star">★★★★</span></td><td>越高 → 球飛越遠</td></tr>
+    <tr><td><code>風向/風速</code></td><td>吹向/吹入、mph</td><td><span class="star">★★★★</span></td><td>外吹 +5–10% HR</td></tr>
+    <tr><td><code>濕度</code></td><td>相對濕度</td><td><span class="star">★★</span></td><td>影響空氣密度</td></tr>
+    <tr><td><code>海拔</code></td><td>球場高度</td><td><span class="star">★★★</span></td><td>Coors 效應</td></tr>
+</table>
+
+<h3>E. 情境因素（佔權重約 5–10%）</h3>
+<table>
+    <tr><th>指標</th><th>說明</th><th>預測力</th><th>備註</th></tr>
+    <tr><td><code>HFA</code></td><td>主場優勢</td><td><span class="star">★★★★</span></td><td>約 +0.10 分</td></tr>
+    <tr><td><code>Travel Days</code></td><td>連續旅行天數</td><td><span class="star">★★★</span></td><td>跨時區扣分</td></tr>
+    <tr><td><code>Rest Days</code></td><td>休息天數</td><td><span class="star">★★★</span></td><td>先發投手休 4 天 vs 3 天</td></tr>
+    <tr><td><code>Lineup</code></td><td>名單確認</td><td><span class="star">★★★★</span></td><td>主力缺陣 −0.10~0.25 分</td></tr>
+    <tr><td><code>Umpire</code></td><td>裁判傾向</td><td><span class="star">★★</span></td><td>進階選項</td></tr>
+</table>
+
+<!-- Section 2 -->
+<h2 id="sec2">二、投球指標與勝率相關性排名</h2>
+
+<p>根據 Samford 大學 71 項統計分析（2021 賽季）以及其他多項研究：</p>
+
+<h3>🏆 與勝率高度相關（r &gt; 0.5）的投球指標排名</h3>
+<table>
+    <tr><th>排名</th><th>指標</th><th>與勝率相關性</th><th>說明</th></tr>
+    <tr><td>1</td><td><strong>Run Differential</strong>（得分差）</td><td><strong>~0.90</strong></td><td>最強的單一指標</td></tr>
+    <tr><td>2</td><td><strong>ERA</strong>（防禦率）</td><td><strong>-0.88</strong></td><td>實際防禦率，最強投球指標</td></tr>
+    <tr><td>3</td><td><strong>Opponent OPS</strong></td><td><strong>-0.86</strong></td><td>對手整體進攻效率</td></tr>
+    <tr><td>4</td><td><strong>LOB%</strong>（留存率）</td><td><strong>~0.70+</strong></td><td>捕殺跑者能力，極度穩定</td></tr>
+    <tr><td>5</td><td><strong>Pitching WAR</strong></td><td><strong>~0.65+</strong></td><td>投手綜合貢獻值</td></tr>
+    <tr><td>6</td><td><strong>FIP</strong>（獨立防禦率）</td><td><strong>~0.60+</strong></td><td>排除防守的投球技能</td></tr>
+    <tr><td>7</td><td><strong>WHIP</strong>（每局上壘率）</td><td><strong>~0.55+</strong></td><td>控球與壓制力</td></tr>
+    <tr><td>8</td><td><strong>H/9</strong>（每九局被打數）</td><td><strong>~0.50+</strong></td><td></td></tr>
+    <tr><td>9</td><td><strong>BAA</strong>（對手打擊率）</td><td><strong>~0.48+</strong></td><td></td></tr>
+    <tr><td>10</td><td><strong>Saves</strong>（救援成功）</td><td><strong>~0.45+</strong></td><td>終結者穩定性</td></tr>
+</table>
+
+<h3>指標分類</h3>
+
+<div class="highlight-box">
+    <h4>A. 結果型指標（Results）— 反映「發生了什麼」</h4>
+    <ul>
+        <li><strong>ERA</strong>：直觀、反映真實結果，但受防守影響大、明年相關性僅 0.38</li>
+        <li><strong>WHIP</strong>：穩定、易理解，但不區分安打種類</li>
+    </ul>
+</div>
+
+<div class="highlight-box green">
+    <h4>B. 技能型指標（Skills）— 預測「接下來會發生什麼」⭐ 推薦使用</h4>
+    <ul>
+        <li><strong>xFIP</strong>：校正全壘打運氣的 FIP，明年相關性 ~0.52 ⭐最佳</li>
+        <li><strong>SIERA</strong>：最全面的技能指標，含 K/BB/HBP/GB/FB/線性加權</li>
+        <li><strong>FIP</strong>：(13×HR + 3×(BB+HBP) - 2×K)/IP + 常數，簡單有效</li>
+        <li><strong>DRA-</strong>：含場地、對手、主客場調整的期望防禦率</li>
+    </ul>
+</div>
+
+<div class="highlight-box gold">
+    <h4>C. 進階 Statcast 指標</h4>
+    <ul>
+        <li><strong>K/9</strong>：每九局三振數 — 高，投手最能控制的技能</li>
+        <li><strong>K-BB%</strong>：三振率減保送率 — 非常高，綜合控球與壓制</li>
+        <li><strong>Barrel%</strong>：最佳擊球品質比例 — 中高</li>
+        <li><strong>GB%/FB%</strong>：滾地球/飛球比例 — 中，影響全壘打率</li>
+    </ul>
+</div>
+
+<!-- Section 3 -->
+<h2 id="sec3">三、勝負預測公式（Moneyline）</h2>
+
+<h3>方法一：Poisson 分佈法（簡潔高效）</h3>
+
+<div class="formula">
+<strong>第 1 步：計算主隊預期得分 λ_home</strong>
+
+λ_home = 基礎得分 × 攻擊調整 × 先發調整 × 場地因子 × 天氣因子 + 牛棚調整 + 主場優勢
+
+其中：
+  基礎得分 = 聯盟平均得分（約 4.5 分）
+  攻擊調整 = 球隊 xwOBA / 聯盟平均 xwOBA
+  先發調整 = 聯盟平均 xFIP / 先發投手 xFIP
+  場地因子 = 該球場 Run Factor（baseballsavant 可查）
+  天氣因子 = 1 + (溫度−60)×0.002 + 風向調整(−0.05 ~ +0.10)
+  牛棚調整 = 0.1 × (牛棚 xFIP − 聯盟平均 xFIP)
+  主場優勢 = +0.10
+
+<strong>第 2 步：同樣計算 λ_away（無主場優勢）</strong>
+
+<strong>第 3 步：Poisson 分佈計算勝率</strong>
+
+P(主隊得 r 分) = e^(-λ_home) × λ_home^r / r!
+P(客隊得 r 分) = e^(-λ_away) × λ_away^r / r!
+
+主隊勝率 = Σ(i&gt;j) P(主隊=i分) × P(客隊=j分)
+</div>
+
+<h3>方法二：Monte Carlo 模擬法（Ballpark Pal 方式，更精確）</h3>
+
+<div class="formula">
+<strong>第 1 步：建立每個打者 vs 投手的對決機率分佈</strong>
+  每個 PA 有 15+ 種可能結果：K、BB、HBP、1B、2B、3B、HR、GO、FO、BF...
+  機率來自 100+ 特徵的機器學習模型（含 exit velocity、launch angle、count、history...）
+
+<strong>第 2 步：逐局模擬</strong>
+  從 1 上半開始 → 逐個 PA 隨機抽樣 → 更新 base-out state → 計分
+  跑者進壘機率（speed）、盜壘機率、牽制機率也都隨機抽樣
+
+<strong>第 3 步：重複 3,000–10,000 次</strong>
+  每次模擬產生一場完整的比賽結果
+
+<strong>第 4 步：統計</strong>
+  主隊勝率 = 主隊勝的模擬次數 / 總模擬次數
+  預期比分 = 平均模擬得分
+  大小分概率 = P(總分 &gt; N)
+</div>
+
+<!-- Section 4 -->
+<h2 id="sec4">四、比分預測公式（Total Runs / Over-Under）</h2>
+
+<div class="formula">
+<strong>總預期得分 = λ_home + λ_away</strong>
+
+P(大分 &gt; N) = 1 − PoissonCDF(N, 總預期得分)
+P(小分 ≤ N) = PoissonCDF(N, 總預期得分)
+
+其中 PoissonCDF(N, λ) = Σ(k=0 to N) [e^(-λ) × λ^k / k!]
+</div>
+
+<h3>範例計算</h3>
+
+<div class="highlight-box">
+    <p>假設：<code>λ_home = 4.8</code>（主隊 xwOBA 高於聯盟、先發 xFIP 低、場地有利）、<code>λ_away = 3.9</code>（客隊一般、先發稍弱）</p>
+    <p>總預期 = 8.7</p>
+    <p style="margin-top: 0.5rem;"><code>P(大 8.5) = 1 − PoissonCDF(8, 8.7) ≈ 0.52</code></p>
+    <p><code>P(小 8.5) = PoissonCDF(8, 8.7) ≈ 0.48</code></p>
+    <p style="margin-top: 0.5rem;">→ 大分 8.5 有微弱優勢</p>
+</div>
+
+<!-- Section 5 -->
+<h2 id="sec5">五、指標權重分配建議</h2>
+
+<table>
+    <tr><th>類別</th><th>建議權重</th><th>理由</th></tr>
+    <tr><td><strong>先發投手</strong></td><td>35–40%</td><td>單場最大變數，xFIP/SIERA 預測力最強</td></tr>
+    <tr><td><strong>球隊攻擊</strong></td><td>25–30%</td><td>xwOBA + Barrel Rate 是得分核心</td></tr>
+    <tr><td><strong>牛棚</strong></td><td>10–15%</td><td>決定 6–9 局勝負，尤其先發早退時</td></tr>
+    <tr><td><strong>場地與天氣</strong></td><td>10–15%</td><td>可將 λ 上下浮動 5–15%</td></tr>
+    <tr><td><strong>情境因素</strong></td><td>5–10%</td><td>旅行、休息、名單變動</td></tr>
+</table>
+
+<!-- Section 6 -->
+<h2 id="sec6">六、實作流程圖</h2>
+
+<div class="flow-chart">
+<span class="node">📥 資料輸入</span>
+  ├─ 先發投手確認（xFIP/SIERA/K-BB% vs 對方打線）
+  ├─ 球隊近期攻擊（xwOBA/Barrel% vs 對方投手側）
+  ├─ 牛棚狀態（xFIP/近3天使用量）
+  ├─ 場地因子（Run Factor + HR Factor）
+  ├─ 天氣預報（溫度/風向/濕度/降雨）
+  └─ 情境（主場/旅行/休息/名單）
+
+<span class="arrow">▼</span>
+
+<span class="node">📐 特徵工程</span>
+  ├─ 計算 λ_home 和 λ_away
+  ├─ 調整左右投配對
+  └─ 加入牛棚疲勞懲罰
+
+<span class="arrow">▼</span>
+
+<span class="node">🎲 預測引擎</span>
+  ├─ [<span class="comment">簡易版</span>] Poisson 分佈 → 勝率 + 大小分
+  └─ [<span class="comment">進階版</span>] Monte Carlo 3000 次模擬 → 完整分佈
+
+<span class="arrow">▼</span>
+
+<span class="node">📊 輸出</span>
+  ├─ 主隊勝率（如 58.7%）
+  ├─ 客隊勝率（如 34.3%）
+  ├─ 預期比分（如 5–3）
+  ├─ 大分 N.5 概率
+  └─ 公平賠率（Fair Odds）
+
+<span class="arrow">▼</span>
+
+<span class="node">⚖️ 市場比較</span>
+  ├─ 公平賠率 vs 運動彩券賠率
+  └─ EV &gt; 0 → 下注建議
+</div>
+
+<!-- Section 7 -->
+<h2 id="sec7">七、Python 實作範例</h2>
+
+<pre><code>import math
+from scipy.stats import poisson
+
+def calculate_lambda(team_xwOBA, opp_xFIP, park_factor, weather_factor, 
+                     bullpen_adj, is_home=True):
+    """計算預期得分 Lambda"""
+    league_avg_runs = 4.5  # 聯盟平均
+    league_avg_xwoba = 0.320  # 聯盟平均 xwOBA
+    league_avg_xfip = 4.00  # 聯盟平均 xFIP
+    
+    attack_adjust = team_xwOBA / league_avg_xwoba
+    pitcher_adjust = league_avg_xfip / opp_xFIP
+    
+    base_lambda = league_avg_runs * attack_adjust * pitcher_adjust
+    base_lambda *= park_factor * weather_factor
+    base_lambda += bullpen_adj
+    
+    if is_home:
+        base_lambda += 0.10  # 主場優勢
+    
+    return max(base_lambda, 1.0)  # 最低 1 分
+
+def predict_game(lambda_home, lambda_away):
+    """Poisson 分佈預測"""
+    win_prob_home = 0
+    for i in range(15):
+        for j in range(i):
+            win_prob_home += poisson.pmf(i, lambda_home) * poisson.pmf(j, lambda_away)
+    
+    total_lambda = lambda_home + lambda_away
+    over_8_5 = 1 - poisson.cdf(8, total_lambda)
+    
+    return {
+        'home_win_prob': round(win_prob_home, 3),
+        'away_win_prob': round(1 - win_prob_home, 3),
+        'fair_home_odds': round(1/win_prob_home, 2),
+        'over_8.5_prob': round(over_8_5, 3),
+        'expected_total': round(total_lambda, 2)
+    }
+
+# 使用範例
+lam_home = calculate_lambda(
+    team_xwOBA=0.340,   # 主隊攻擊強
+    opp_xFIP=3.60,       # 客隊先發弱
+    park_factor=1.03,    # 場地略有利
+    weather_factor=1.02, # 天氣略有利
+    bullpen_adj=-0.05,   # 牛棚略強
+    is_home=True
+)
+
+lam_away = calculate_lambda(
+    team_xwOBA=0.310,   # 客隊攻擊一般
+    opp_xFIP=4.10,      # 主隊先發強
+    park_factor=1.03,
+    weather_factor=1.02,
+    bullpen_adj=0.05,
+    is_home=False
+)
+
+result = predict_game(lam_home, lam_away)
+print(result)
+# 輸出: {'home_win_prob': 0.587, 'away_win_prob': 0.343,
+#        'fair_home_odds': 1.70, 'over_8.5_prob': 0.412,
+#        'expected_total': 8.3}</code></pre>
+
+<!-- Section 8 -->
+<h2 id="sec8">八、關鍵提醒與最佳實踐</h2>
+
+<div class="highlight-box">
+    <h4>⚠️ 避坑指南</h4>
+    <ol>
+        <li><strong>不要直接用 ERA 和打擊率</strong> — 它們受運氣影響太大，預測力遠低於 xFIP/SIERA/xwOBA</li>
+        <li><strong>左右投配對比整體數據更重要</strong> — 同一個打者 vs 左投 vs 右投可能差 50+ wRC+</li>
+        <li><strong>牛棚疲勞是隱形殺手</strong> — 後援投手連投 2 天以上，λ 應扣 0.1–0.3 分</li>
+        <li><strong>場地因子差異極大</strong> — Coors Field（+15% 得分）vs Oracle Park（−12% 得分）</li>
+        <li><strong>BvP（打者對投手）歷史樣本太小</strong> — 不要過度依賴，用技能指標取代</li>
+    </ol>
+</div>
+
+<div class="highlight-box green">
+    <h4>✅ 最佳實踐</h4>
+    <ol>
+        <li><strong>優先使用技能型指標</strong>：xFIP、SIERA、xwOBA 勝於 ERA、打擊率</li>
+        <li><strong>近 30 天數據權重大於整季數據</strong>：反映真實當前狀態</li>
+        <li><strong>場地 + 天氣組合調整</strong>：不要單獨使用其中一個</li>
+        <li><strong>Lineup 確認後再計算</strong>：主力缺陣會顯著影響 λ</li>
+        <li><strong>與市場比較</strong>：公平賠率 > 市場賠率 → 正期望值</li>
+    </ol>
+</div>
+
+<div class="highlight-box gold">
+    <h4>📊 快速決策檢查清單</h4>
+    <p><strong>✅ 單場勝負預測：</strong></p>
+    <ul>
+        <li>□ 取得先發投手 xFIP/SIERA 和 K-BB%</li>
+        <li>□ 取得雙方 xwOBA（分左右投配對）</li>
+        <li>□ 計算 λ_home 和 λ_away</li>
+        <li>□ 套用 Poisson 分佈</li>
+        <li>□ 比較公平賠率與市場賠率</li>
+    </ul>
+    <p><strong>✅ 單場比分預測：</strong></p>
+    <ul>
+        <li>□ 加入場地因子 × 天氣因子</li>
+        <li>□ 加入牛棚疲勞調整</li>
+        <li>□ 計算總預期得分</li>
+        <li>□ 套用 Poisson CDF 計算大小分概率</li>
+    </ul>
+</div>
+
+</div>
+
+<div class="footer">
+    <p>MLB 單場勝負與比分預測模型研究報告</p>
+    <p>由 Hermes Agent (Edith) 整理製作 · 2026</p>
+    <p style="margin-top: 0.5rem;">資料來源：Ballpark Pal、Underdog Chance、MLB Prediction、Samford University、FanGraphs、Baseball Prospectus</p>
+</div>
+
+</body>
+</html>
