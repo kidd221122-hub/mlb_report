@@ -314,6 +314,43 @@
             gap: 5px;
         }
 
+        /* Navigation Buttons */
+        .report-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            gap: 20px;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            max-width: 48%;
+        }
+
+        .nav-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .nav-btn.disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
         /* Markdown Content Styles */
         .markdown-content {
             font-size: 16px;
@@ -552,7 +589,7 @@
 <body>
     <!-- Header -->
     <header class="header">
-        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <button class="menu-toggle" onclick="toggleSidebar()">&#9776;</button>
         <div class="logo">Edith's Notes <span>| MLB Research</span></div>
         <div class="search-box">
             <span class="search-icon">&#128269;</span>
@@ -586,17 +623,40 @@
     <script src="reports-data.js"></script>
     <script>
         // ==================== Global Variables ====================
-        let currentReport = null;
-        let searchIndex = [];
+        var currentReport = null;
+        var searchIndex = [];
 
         // ==================== Initialize ====================
         document.addEventListener('DOMContentLoaded', function() {
             renderCategories();
             buildSearchIndex();
-            loadFirstReport();
+            handleRoute();
             initTheme();
             initScrollListener();
         });
+
+        // Handle browser routing
+        window.addEventListener('popstate', function() {
+            handleRoute();
+        });
+
+        function handleRoute() {
+            var hash = window.location.hash;
+            if (hash && hash.indexOf('#report/') === 0) {
+                var parts = hash.substring(8).split('/');
+                var category = decodeURIComponent(parts[0]);
+                var reportId = decodeURIComponent(parts[1]);
+                loadReport(category, reportId);
+            } else {
+                // Default to first report
+                var categories = Object.keys(reports);
+                if (categories.length > 0) {
+                    var firstCategory = categories[0];
+                    var firstReport = reports[firstCategory][0];
+                    loadReport(firstCategory, firstReport.id);
+                }
+            }
+        }
 
         // ==================== Render Categories ====================
         function renderCategories() {
@@ -604,32 +664,35 @@
             categoryList.innerHTML = '';
 
             var categories = Object.keys(reports);
-            categories.forEach(function(category, index) {
+            for (var c = 0; c < categories.length; c++) {
+                var category = categories[c];
                 var categoryDiv = document.createElement('div');
                 categoryDiv.className = 'category';
 
                 var header = document.createElement('div');
-                header.className = 'category-header' + (index === 0 ? ' active' : '');
+                header.className = 'category-header' + (c === 0 ? ' active' : '');
                 header.innerHTML = '<span>&#128193; ' + category + '</span><span class="arrow">&rsaquo;</span>';
-                header.onclick = function() { toggleCategory(header); };
+                header.onclick = function() { toggleCategory(this); };
 
                 var itemsDiv = document.createElement('div');
-                itemsDiv.className = 'category-items' + (index === 0 ? ' active' : '');
+                itemsDiv.className = 'category-items' + (c === 0 ? ' active' : '');
 
-                reports[category].forEach(function(report, reportIndex) {
+                var categoryReports = reports[category];
+                for (var r = 0; r < categoryReports.length; r++) {
+                    var report = categoryReports[r];
                     var item = document.createElement('div');
-                    item.className = 'category-item' + (index === 0 && reportIndex === 0 ? ' active' : '');
+                    item.className = 'category-item';
                     item.textContent = report.title;
                     item.dataset.category = category;
                     item.dataset.reportId = report.id;
-                    item.onclick = function() { loadReport(category, report.id, item); };
+                    item.onclick = function() { navigateToReport(this.dataset.category, this.dataset.reportId); };
                     itemsDiv.appendChild(item);
-                });
+                }
 
                 categoryDiv.appendChild(header);
                 categoryDiv.appendChild(itemsDiv);
                 categoryList.appendChild(categoryDiv);
-            });
+            }
         }
 
         // ==================== Toggle Category ====================
@@ -639,18 +702,14 @@
             items.classList.toggle('active');
         }
 
-        // ==================== Load Report ====================
-        function loadReport(category, reportId, element) {
-            // Update active state
-            var items = document.querySelectorAll('.category-item');
-            for (var i = 0; i < items.length; i++) {
-                items[i].classList.remove('active');
-            }
-            if (element) {
-                element.classList.add('active');
-            }
+        // ==================== Navigate to Report ====================
+        function navigateToReport(category, reportId) {
+            window.location.hash = '#report/' + encodeURIComponent(category) + '/' + encodeURIComponent(reportId);
+            loadReport(category, reportId);
+        }
 
-            // Find report data
+        // ==================== Load Report ====================
+        function loadReport(category, reportId) {
             var report = null;
             var allReports = reports[category];
             for (var i = 0; i < allReports.length; i++) {
@@ -663,14 +722,62 @@
 
             currentReport = { category: category, title: report.title, date: report.date, tags: report.tags, content: report.content };
 
-            // Render report
-            var container = document.getElementById('reportContainer');
+            // Update sidebar active state
+            var items = document.querySelectorAll('.category-item');
+            for (var i = 0; i < items.length; i++) {
+                items[i].classList.remove('active');
+                if (items[i].dataset.category === category && items[i].dataset.reportId === reportId) {
+                    items[i].classList.add('active');
+                }
+            }
+
+            // Build report meta tags
             var tagsHtml = '';
             for (var i = 0; i < report.tags.length; i++) {
                 if (i > 0) tagsHtml += ', ';
                 tagsHtml += report.tags[i];
             }
 
+            // Get prev/next report
+            var prevReport = null;
+            var nextReport = null;
+            var foundCurrent = false;
+            var catKeys = Object.keys(reports);
+
+            for (var c = 0; c < catKeys.length; c++) {
+                var catReports = reports[catKeys[c]];
+                for (var r = 0; r < catReports.length; r++) {
+                    if (foundCurrent) {
+                        nextReport = { category: catKeys[c], report: catReports[r] };
+                        break;
+                    }
+                    if (catReports[r].id === reportId && catKeys[c] === category) {
+                        foundCurrent = true;
+                        if (r > 0) {
+                            prevReport = { category: catKeys[c], report: catReports[r - 1] };
+                        }
+                    }
+                }
+                if (nextReport) break;
+            }
+
+            // If no next in current category, get first of next category
+            if (!nextReport && foundCurrent) {
+                for (var c = 0; c < catKeys.length; c++) {
+                    if (catKeys[c] === category) {
+                        if (c + 1 < catKeys.length) {
+                            var nextCatReports = reports[catKeys[c + 1]];
+                            if (nextCatReports.length > 0) {
+                                nextReport = { category: catKeys[c + 1], report: nextCatReports[0] };
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
+            // Render report
+            var container = document.getElementById('reportContainer');
             container.innerHTML = 
                 '<div class="report-header">' +
                     '<span class="report-category">' + category + '</span>' +
@@ -682,6 +789,10 @@
                 '</div>' +
                 '<div class="markdown-content">' +
                     marked.parse(report.content) +
+                '</div>' +
+                '<div class="report-nav">' +
+                    (prevReport ? '<a class="nav-btn" href="#report/' + encodeURIComponent(prevReport.category) + '/' + encodeURIComponent(prevReport.report.id) + '">&#8592; 上一篇: ' + prevReport.report.title + '</a>' : '<div class="nav-btn disabled">&#8592; 上一篇</div>') +
+                    (nextReport ? '<a class="nav-btn" href="#report/' + encodeURIComponent(nextReport.category) + '/' + encodeURIComponent(nextReport.report.id) + '">下一篇: ' + nextReport.report.title + ' &#8594;</a>' : '<div class="nav-btn disabled">下一篇 &#8594;</div>') +
                 '</div>';
 
             // Highlight code blocks
@@ -696,16 +807,6 @@
             // Close sidebar on mobile
             if (window.innerWidth <= 768) {
                 document.getElementById('sidebar').classList.remove('open');
-            }
-        }
-
-        // ==================== Load First Report ====================
-        function loadFirstReport() {
-            var categories = Object.keys(reports);
-            if (categories.length > 0) {
-                var firstCategory = categories[0];
-                var firstReport = reports[firstCategory][0];
-                loadReport(firstCategory, firstReport.id, document.querySelector('.category-item'));
             }
         }
 
@@ -737,6 +838,10 @@
             return div.innerHTML;
         }
 
+        function escapeRegex(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
         function handleSearch(query) {
             var resultsDiv = document.getElementById('searchResults');
 
@@ -764,7 +869,7 @@
                     var item = results[i];
                     var highlightedTitle = highlightText(escapeHtml(item.title), query);
                     var highlightedPreview = highlightText(escapeHtml(item.content.substring(0, 100)), query);
-                    html += '<div class="search-result-item" onclick="loadReport(\'' + item.category + '\', \'' + item.id + '\')">' +
+                    html += '<div class="search-result-item" onclick="navigateToReport(\'' + item.category + '\', \'' + item.id + '\')">' +
                                 '<div class="search-result-title">' + highlightedTitle + '</div>' +
                                 '<div class="search-result-preview">' + highlightedPreview + '...</div>' +
                             '</div>';
@@ -778,10 +883,6 @@
         function highlightText(text, query) {
             var regex = new RegExp('(' + escapeRegex(query) + ')', 'gi');
             return text.replace(regex, '<mark>$1</mark>');
-        }
-
-        function escapeRegex(string) {
-            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
 
         // Close search results when clicking outside
