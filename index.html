@@ -30,11 +30,7 @@
             --primary-color: #569cd6;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -44,550 +40,162 @@
             transition: all 0.3s ease;
         }
 
-        /* Header */
         .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
+            position: fixed; top: 0; left: 0; right: 0;
             height: var(--header-height);
             background: var(--sidebar-bg);
             border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            z-index: 1000;
-            gap: 15px;
+            display: flex; align-items: center; padding: 0 20px;
+            z-index: 1000; gap: 15px;
         }
 
         .menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--text-color);
+            display: none; background: none; border: none;
+            font-size: 24px; cursor: pointer; color: var(--text-color);
         }
 
-        .logo {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--primary-color);
-            white-space: nowrap;
-        }
+        .logo { font-size: 20px; font-weight: 700; color: var(--primary-color); white-space: nowrap; }
+        .logo span { font-weight: 400; opacity: 0.7; }
 
-        .logo span {
-            font-weight: 400;
-            opacity: 0.7;
-        }
-
-        .search-box {
-            flex: 1;
-            max-width: 600px;
-            position: relative;
-        }
-
+        .search-box { flex: 1; max-width: 600px; position: relative; }
         .search-box input {
-            width: 100%;
-            padding: 10px 15px 10px 40px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--bg-color);
-            color: var(--text-color);
-            font-size: 14px;
-            transition: all 0.3s;
+            width: 100%; padding: 10px 15px 10px 40px;
+            border: 1px solid var(--border-color); border-radius: 8px;
+            background: var(--bg-color); color: var(--text-color);
+            font-size: 14px; transition: all 0.3s;
         }
-
-        .search-box input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
-        }
-
-        .search-box .search-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #999;
-        }
-
+        .search-box input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1); }
+        .search-box .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #999; }
         .search-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            margin-top: 5px;
-            max-height: 400px;
-            overflow-y: auto;
-            display: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: var(--bg-color); border: 1px solid var(--border-color);
+            border-radius: 8px; margin-top: 5px; max-height: 400px;
+            overflow-y: auto; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
-
-        .search-results.active {
-            display: block;
-        }
-
-        .search-result-item {
-            padding: 12px 15px;
-            cursor: pointer;
-            border-bottom: 1px solid var(--border-color);
-            transition: background 0.2s;
-        }
-
-        .search-result-item:last-child {
-            border-bottom: none;
-        }
-
-        .search-result-item:hover {
-            background: var(--hover-bg);
-        }
-
-        .search-result-title {
-            font-weight: 600;
-            color: var(--primary-color);
-            margin-bottom: 4px;
-        }
-
-        .search-result-preview {
-            font-size: 13px;
-            color: #666;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .search-result-preview mark {
-            background: #fff3cd;
-            color: inherit;
-        }
+        .search-results.active { display: block; }
+        .search-result-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid var(--border-color); transition: background 0.2s; }
+        .search-result-item:last-child { border-bottom: none; }
+        .search-result-item:hover { background: var(--hover-bg); }
+        .search-result-title { font-weight: 600; color: var(--primary-color); margin-bottom: 4px; }
+        .search-result-preview { font-size: 13px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .search-result-preview mark { background: #fff3cd; color: inherit; }
 
         .theme-toggle {
-            background: none;
-            border: 1px solid var(--border-color);
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 18px;
-            transition: all 0.3s;
+            background: none; border: 1px solid var(--border-color);
+            padding: 8px 12px; border-radius: 6px; cursor: pointer;
+            font-size: 18px; transition: all 0.3s;
         }
+        .theme-toggle:hover { background: var(--hover-bg); }
 
-        .theme-toggle:hover {
-            background: var(--hover-bg);
-        }
-
-        /* Sidebar */
         .sidebar {
-            position: fixed;
-            left: 0;
-            top: var(--header-height);
-            bottom: 0;
-            width: var(--sidebar-width);
-            background: var(--sidebar-bg);
+            position: fixed; left: 0; top: var(--header-height); bottom: 0;
+            width: var(--sidebar-width); background: var(--sidebar-bg);
             border-right: 1px solid var(--border-color);
-            overflow-y: auto;
-            z-index: 900;
-            transition: transform 0.3s ease;
+            overflow-y: auto; z-index: 900; transition: transform 0.3s ease;
         }
-
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .sidebar-header h3 {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #999;
-            margin-bottom: 10px;
-        }
-
-        .category {
-            margin-bottom: 8px;
-        }
-
+        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border-color); }
+        .sidebar-header h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #999; margin-bottom: 10px; }
+        .category { margin-bottom: 8px; }
         .category-header {
-            padding: 10px 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-weight: 600;
-            font-size: 14px;
-            transition: background 0.2s;
+            padding: 10px 20px; cursor: pointer; display: flex;
+            align-items: center; justify-content: space-between;
+            font-weight: 600; font-size: 14px; transition: background 0.2s;
         }
-
-        .category-header:hover {
-            background: var(--hover-bg);
-        }
-
-        .category-header .arrow {
-            transition: transform 0.3s;
-            font-size: 12px;
-        }
-
-        .category-header.active .arrow {
-            transform: rotate(90deg);
-        }
-
-        .category-items {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-
-        .category-items.active {
-            max-height: 1000px;
-        }
-
+        .category-header:hover { background: var(--hover-bg); }
+        .category-header .arrow { transition: transform 0.3s; font-size: 12px; }
+        .category-header.active .arrow { transform: rotate(90deg); }
+        .category-items { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .category-items.active { max-height: 1000px; }
         .category-item {
-            padding: 8px 20px 8px 40px;
-            cursor: pointer;
-            font-size: 14px;
-            color: var(--text-color);
-            transition: all 0.2s;
-            border-left: 3px solid transparent;
+            padding: 8px 20px 8px 40px; cursor: pointer; font-size: 14px;
+            color: var(--text-color); transition: all 0.2s; border-left: 3px solid transparent;
         }
+        .category-item:hover { background: var(--hover-bg); }
+        .category-item.active { background: var(--active-bg); border-left-color: var(--primary-color); font-weight: 600; }
 
-        .category-item:hover {
-            background: var(--hover-bg);
-        }
-
-        .category-item.active {
-            background: var(--active-bg);
-            border-left-color: var(--primary-color);
-            font-weight: 600;
-        }
-
-        /* Main Content */
         .main-content {
-            margin-left: var(--sidebar-width);
-            margin-top: var(--header-height);
-            padding: 40px;
-            min-height: calc(100vh - var(--header-height));
+            margin-left: var(--sidebar-width); margin-top: var(--header-height);
+            padding: 40px; min-height: calc(100vh - var(--header-height));
             transition: margin-left 0.3s ease;
         }
-
-        .report-container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .report-header {
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid var(--border-color);
-        }
-
+        .report-container { max-width: 900px; margin: 0 auto; }
+        .report-header { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid var(--border-color); }
         .report-category {
-            display: inline-block;
-            padding: 4px 12px;
-            background: var(--primary-color);
-            color: white;
-            border-radius: 20px;
-            font-size: 12px;
-            margin-bottom: 10px;
+            display: inline-block; padding: 4px 12px; background: var(--primary-color);
+            color: white; border-radius: 20px; font-size: 12px; margin-bottom: 10px;
         }
+        .report-title { font-size: 32px; font-weight: 700; margin-bottom: 10px; line-height: 1.3; }
+        .report-meta { display: flex; gap: 20px; color: #666; font-size: 14px; flex-wrap: wrap; }
+        .report-meta span { display: flex; align-items: center; gap: 5px; }
 
-        .report-title {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            line-height: 1.3;
-        }
-
-        .report-meta {
-            display: flex;
-            gap: 20px;
-            color: #666;
-            font-size: 14px;
-            flex-wrap: wrap;
-        }
-
-        .report-meta span {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        /* Navigation Buttons */
-        .report-nav {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
-            gap: 20px;
-        }
-
+        .report-nav { display: flex; justify-content: space-between; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-color); gap: 20px; }
         .nav-btn {
-            padding: 10px 20px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--bg-color);
-            color: var(--text-color);
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            max-width: 48%;
+            padding: 10px 20px; border: 1px solid var(--border-color); border-radius: 8px;
+            background: var(--bg-color); color: var(--text-color); cursor: pointer;
+            font-size: 14px; transition: all 0.2s; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 8px; max-width: 48%;
         }
+        .nav-btn:hover { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+        .nav-btn.disabled { opacity: 0.3; pointer-events: none; }
 
-        .nav-btn:hover {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
+        .markdown-content { font-size: 16px; line-height: 1.8; }
+        .markdown-content h1 { font-size: 28px; font-weight: 700; margin: 30px 0 20px; padding-bottom: 10px; border-bottom: 2px solid var(--border-color); }
+        .markdown-content h2 { font-size: 24px; font-weight: 600; margin: 25px 0 15px; color: var(--primary-color); }
+        .markdown-content h3 { font-size: 20px; font-weight: 600; margin: 20px 0 10px; }
+        .markdown-content h4, .markdown-content h5, .markdown-content h6 { font-size: 16px; font-weight: 600; margin: 15px 0 10px; }
+        .markdown-content p { margin-bottom: 15px; }
+        .markdown-content ul, .markdown-content ol { margin-bottom: 15px; padding-left: 30px; }
+        .markdown-content li { margin-bottom: 8px; }
+        .markdown-content table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
+        .markdown-content th, .markdown-content td { padding: 12px; border: 1px solid var(--border-color); text-align: left; }
+        .markdown-content th { background: var(--sidebar-bg); font-weight: 600; }
+        .markdown-content tr:nth-child(even) { background: rgba(0,0,0,0.02); }
+        .markdown-content code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', 'Monaco', monospace; font-size: 14px; }
+        .markdown-content pre { background: var(--code-bg); padding: 15px; border-radius: 8px; overflow-x: auto; margin-bottom: 20px; border: 1px solid var(--border-color); }
+        .markdown-content pre code { background: none; padding: 0; }
+        .markdown-content blockquote { border-left: 4px solid var(--primary-color); padding: 10px 20px; margin: 15px 0; background: var(--sidebar-bg); border-radius: 0 8px 8px 0; }
+        .markdown-content a { color: var(--primary-color); text-decoration: none; }
+        .markdown-content a:hover { text-decoration: underline; }
+        .markdown-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 15px 0; }
+        .markdown-content hr { border: none; border-top: 2px solid var(--border-color); margin: 30px 0; }
+        .markdown-content strong { font-weight: 700; }
+        .markdown-content em { font-style: italic; }
 
-        .nav-btn.disabled {
-            opacity: 0.3;
-            pointer-events: none;
-        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--sidebar-bg); }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #999; }
 
-        /* Markdown Content Styles */
-        .markdown-content {
-            font-size: 16px;
-            line-height: 1.8;
-        }
-
-        .markdown-content h1 {
-            font-size: 28px;
-            font-weight: 700;
-            margin: 30px 0 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--border-color);
-        }
-
-        .markdown-content h2 {
-            font-size: 24px;
-            font-weight: 600;
-            margin: 25px 0 15px;
-            color: var(--primary-color);
-        }
-
-        .markdown-content h3 {
-            font-size: 20px;
-            font-weight: 600;
-            margin: 20px 0 10px;
-        }
-
-        .markdown-content h4, .markdown-content h5, .markdown-content h6 {
-            font-size: 16px;
-            font-weight: 600;
-            margin: 15px 0 10px;
-        }
-
-        .markdown-content p {
-            margin-bottom: 15px;
-        }
-
-        .markdown-content ul, .markdown-content ol {
-            margin-bottom: 15px;
-            padding-left: 30px;
-        }
-
-        .markdown-content li {
-            margin-bottom: 8px;
-        }
-
-        .markdown-content table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-
-        .markdown-content th,
-        .markdown-content td {
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            text-align: left;
-        }
-
-        .markdown-content th {
-            background: var(--sidebar-bg);
-            font-weight: 600;
-        }
-
-        .markdown-content tr:nth-child(even) {
-            background: rgba(0,0,0,0.02);
-        }
-
-        .markdown-content code {
-            background: var(--code-bg);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 14px;
-        }
-
-        .markdown-content pre {
-            background: var(--code-bg);
-            padding: 15px;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
-        }
-
-        .markdown-content pre code {
-            background: none;
-            padding: 0;
-        }
-
-        .markdown-content blockquote {
-            border-left: 4px solid var(--primary-color);
-            padding: 10px 20px;
-            margin: 15px 0;
-            background: var(--sidebar-bg);
-            border-radius: 0 8px 8px 0;
-        }
-
-        .markdown-content a {
-            color: var(--primary-color);
-            text-decoration: none;
-        }
-
-        .markdown-content a:hover {
-            text-decoration: underline;
-        }
-
-        .markdown-content img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin: 15px 0;
-        }
-
-        .markdown-content hr {
-            border: none;
-            border-top: 2px solid var(--border-color);
-            margin: 30px 0;
-        }
-
-        .markdown-content strong {
-            font-weight: 700;
-        }
-
-        .markdown-content em {
-            font-style: italic;
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--sidebar-bg);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #ccc;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #999;
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
-            .menu-toggle {
-                display: block;
-            }
-
-            .sidebar {
-                transform: translateX(-100%);
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-left: 0;
-                padding: 20px;
-            }
-
-            .logo {
-                font-size: 16px;
-            }
-
-            .report-title {
-                font-size: 24px;
-            }
-
-            .search-box {
-                max-width: none;
-            }
+            .menu-toggle { display: block; }
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 20px; }
+            .logo { font-size: 16px; }
+            .report-title { font-size: 24px; }
+            .search-box { max-width: none; }
         }
 
-        /* Loading Animation */
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-
+        .loading { text-align: center; padding: 40px; color: #999; }
         .loading::after {
-            content: '';
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--border-color);
-            border-top-color: var(--primary-color);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-left: 10px;
-            vertical-align: middle;
+            content: ''; display: inline-block; width: 20px; height: 20px;
+            border: 2px solid var(--border-color); border-top-color: var(--primary-color);
+            border-radius: 50%; animation: spin 0.8s linear infinite; margin-left: 10px; vertical-align: middle;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Back to top button */
         .back-to-top {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 40px;
-            height: 40px;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            transition: all 0.3s;
-            z-index: 800;
+            position: fixed; bottom: 30px; right: 30px; width: 40px; height: 40px;
+            background: var(--primary-color); color: white; border: none;
+            border-radius: 50%; cursor: pointer; display: none;
+            align-items: center; justify-content: center; font-size: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2); transition: all 0.3s; z-index: 800;
         }
-
-        .back-to-top:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
-        .back-to-top.visible {
-            display: flex;
-        }
+        .back-to-top:hover { transform: translateY(-3px); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .back-to-top.visible { display: flex; }
     </style>
 </head>
 <body>
-    <!-- Header -->
     <header class="header">
         <button class="menu-toggle" onclick="toggleSidebar()">&#9776;</button>
         <div class="logo">Edith's Notes <span>| MLB Research</span></div>
@@ -599,34 +207,24 @@
         <button class="theme-toggle" onclick="toggleTheme()" title="切換主題">&#127769;</button>
     </header>
 
-    <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h3>&#128218; 報告分類</h3>
-        </div>
+        <div class="sidebar-header"><h3>&#128218; 報告分類</h3></div>
         <div id="categoryList"></div>
     </aside>
 
-    <!-- Main Content -->
     <main class="main-content" id="mainContent">
-        <div class="report-container" id="reportContainer">
-            <div class="loading">載入中...</div>
-        </div>
+        <div class="report-container" id="reportContainer"><div class="loading">載入中...</div></div>
     </main>
 
-    <!-- Back to Top Button -->
     <button class="back-to-top" id="backToTop" onclick="scrollToTop()">&#8679;</button>
 
-    <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="reports-data.js"></script>
     <script>
-        // ==================== Global Variables ====================
         var currentReport = null;
         var searchIndex = [];
 
-        // ==================== Initialize ====================
         document.addEventListener('DOMContentLoaded', function() {
             renderCategories();
             buildSearchIndex();
@@ -635,150 +233,137 @@
             initScrollListener();
         });
 
-        // Handle browser routing
-        window.addEventListener('popstate', function() {
-            handleRoute();
-        });
+        window.addEventListener('popstate', function() { handleRoute(); });
 
         function handleRoute() {
             var hash = window.location.hash;
             if (hash && hash.indexOf('#report/') === 0) {
                 var parts = hash.substring(8).split('/');
-                var category = decodeURIComponent(parts[0]);
+                var slug = decodeURIComponent(parts[0]);
                 var reportId = decodeURIComponent(parts[1]);
-                loadReport(category, reportId);
-            } else {
-                // Default to first report
-                var categories = Object.keys(reports);
-                if (categories.length > 0) {
-                    var firstCategory = categories[0];
-                    var firstReport = reports[firstCategory][0];
-                    loadReport(firstCategory, firstReport.id);
-                }
+                var category = findCategoryBySlug(slug);
+                if (category) { loadReport(category, reportId); }
+                else { loadDefault(); }
+            } else { loadDefault(); }
+        }
+
+        function findCategoryBySlug(slug) {
+            var slugs = {
+                'mlb-prediction': 'MLB預測模型',
+                'pitcher-analysis': '投手分析',
+                'betting-strategy': '投注策略'
+            };
+            return slugs[slug] || null;
+        }
+
+        function getCategorySlug(category) {
+            var slugs = {
+                'MLB預測模型': 'mlb-prediction',
+                '投手分析': 'pitcher-analysis',
+                '投注策略': 'betting-strategy'
+            };
+            return slugs[category] || category;
+        }
+
+        function loadDefault() {
+            var cats = Object.keys(reports);
+            if (cats.length > 0) {
+                var firstCat = cats[0];
+                var firstRep = reports[firstCat][0];
+                loadReport(firstCat, firstRep.id);
             }
         }
 
-        // ==================== Render Categories ====================
         function renderCategories() {
-            var categoryList = document.getElementById('categoryList');
-            categoryList.innerHTML = '';
-
-            var categories = Object.keys(reports);
-            for (var c = 0; c < categories.length; c++) {
-                var category = categories[c];
-                var categoryDiv = document.createElement('div');
-                categoryDiv.className = 'category';
-
+            var cl = document.getElementById('categoryList');
+            cl.innerHTML = '';
+            var cats = Object.keys(reports);
+            for (var c = 0; c < cats.length; c++) {
+                var cat = cats[c];
+                var catDiv = document.createElement('div');
+                catDiv.className = 'category';
                 var header = document.createElement('div');
                 header.className = 'category-header' + (c === 0 ? ' active' : '');
-                header.innerHTML = '<span>&#128193; ' + category + '</span><span class="arrow">&rsaquo;</span>';
+                header.innerHTML = '<span>&#128193; ' + cat + '</span><span class="arrow">&rsaquo;</span>';
                 header.onclick = function() { toggleCategory(this); };
-
                 var itemsDiv = document.createElement('div');
                 itemsDiv.className = 'category-items' + (c === 0 ? ' active' : '');
-
-                var categoryReports = reports[category];
-                for (var r = 0; r < categoryReports.length; r++) {
-                    var report = categoryReports[r];
+                var catReps = reports[cat];
+                for (var r = 0; r < catReps.length; r++) {
+                    var rep = catReps[r];
                     var item = document.createElement('div');
                     item.className = 'category-item';
-                    item.textContent = report.title;
-                    item.dataset.category = category;
-                    item.dataset.reportId = report.id;
+                    item.textContent = rep.title;
+                    item.dataset.category = cat;
+                    item.dataset.reportId = rep.id;
                     item.onclick = function() { navigateToReport(this.dataset.category, this.dataset.reportId); };
                     itemsDiv.appendChild(item);
                 }
-
-                categoryDiv.appendChild(header);
-                categoryDiv.appendChild(itemsDiv);
-                categoryList.appendChild(categoryDiv);
+                catDiv.appendChild(header);
+                catDiv.appendChild(itemsDiv);
+                cl.appendChild(catDiv);
             }
         }
 
-        // ==================== Toggle Category ====================
         function toggleCategory(header) {
             var items = header.nextElementSibling;
             header.classList.toggle('active');
             items.classList.toggle('active');
         }
 
-        // ==================== Navigate to Report ====================
         function navigateToReport(category, reportId) {
-            window.location.hash = '#report/' + encodeURIComponent(category) + '/' + encodeURIComponent(reportId);
+            var slug = getCategorySlug(category);
+            window.location.hash = '#report/' + encodeURIComponent(slug) + '/' + encodeURIComponent(reportId);
             loadReport(category, reportId);
         }
 
-        // ==================== Load Report ====================
         function loadReport(category, reportId) {
             var report = null;
-            var allReports = reports[category];
-            for (var i = 0; i < allReports.length; i++) {
-                if (allReports[i].id === reportId) {
-                    report = allReports[i];
-                    break;
-                }
+            var allReps = reports[category];
+            for (var i = 0; i < allReps.length; i++) {
+                if (allReps[i].id === reportId) { report = allReps[i]; break; }
             }
             if (!report) return;
 
             currentReport = { category: category, title: report.title, date: report.date, tags: report.tags, content: report.content };
 
-            // Update sidebar active state
             var items = document.querySelectorAll('.category-item');
             for (var i = 0; i < items.length; i++) {
                 items[i].classList.remove('active');
-                if (items[i].dataset.category === category && items[i].dataset.reportId === reportId) {
-                    items[i].classList.add('active');
-                }
+                if (items[i].dataset.category === category && items[i].dataset.reportId === reportId) { items[i].classList.add('active'); }
             }
 
-            // Build report meta tags
             var tagsHtml = '';
-            for (var i = 0; i < report.tags.length; i++) {
-                if (i > 0) tagsHtml += ', ';
-                tagsHtml += report.tags[i];
-            }
+            for (var i = 0; i < report.tags.length; i++) { if (i > 0) tagsHtml += ', '; tagsHtml += report.tags[i]; }
 
-            // Get prev/next report
-            var prevReport = null;
-            var nextReport = null;
-            var foundCurrent = false;
+            // Find prev/next
+            var prevReport = null, nextReport = null, foundCurrent = false;
             var catKeys = Object.keys(reports);
-
             for (var c = 0; c < catKeys.length; c++) {
-                var catReports = reports[catKeys[c]];
-                for (var r = 0; r < catReports.length; r++) {
-                    if (foundCurrent) {
-                        nextReport = { category: catKeys[c], report: catReports[r] };
-                        break;
-                    }
-                    if (catReports[r].id === reportId && catKeys[c] === category) {
+                var catReps = reports[catKeys[c]];
+                for (var r = 0; r < catReps.length; r++) {
+                    if (foundCurrent) { nextReport = { category: catKeys[c], report: catReps[r] }; break; }
+                    if (catReps[r].id === reportId && catKeys[c] === category) {
                         foundCurrent = true;
-                        if (r > 0) {
-                            prevReport = { category: catKeys[c], report: catReports[r - 1] };
-                        }
+                        if (r > 0) prevReport = { category: catKeys[c], report: catReps[r - 1] };
                     }
                 }
                 if (nextReport) break;
             }
 
-            // If no next in current category, get first of next category
-            if (!nextReport && foundCurrent) {
-                for (var c = 0; c < catKeys.length; c++) {
-                    if (catKeys[c] === category) {
-                        if (c + 1 < catKeys.length) {
-                            var nextCatReports = reports[catKeys[c + 1]];
-                            if (nextCatReports.length > 0) {
-                                nextReport = { category: catKeys[c + 1], report: nextCatReports[0] };
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
+            var navPrev = '', navNext = '';
+            if (prevReport) {
+                var ps = getCategorySlug(prevReport.category);
+                navPrev = '<a class="nav-btn" href="#report/' + encodeURIComponent(ps) + '/' + encodeURIComponent(prevReport.report.id) + '">&#8592; 上一篇: ' + prevReport.report.title + '</a>';
+            } else { navPrev = '<div class="nav-btn disabled">&#8592; 上一篇</div>'; }
 
-            // Render report
+            if (nextReport) {
+                var ns = getCategorySlug(nextReport.category);
+                navNext = '<a class="nav-btn" href="#report/' + encodeURIComponent(ns) + '/' + encodeURIComponent(nextReport.report.id) + '">下一篇: ' + nextReport.report.title + ' &#8594;</a>';
+            } else { navNext = '<div class="nav-btn disabled">下一篇 &#8594;</div>'; }
+
             var container = document.getElementById('reportContainer');
-            container.innerHTML = 
+            container.innerHTML =
                 '<div class="report-header">' +
                     '<span class="report-category">' + category + '</span>' +
                     '<h1 class="report-title">' + report.title + '</h1>' +
@@ -787,97 +372,60 @@
                         '<span>&#127991; ' + tagsHtml + '</span>' +
                     '</div>' +
                 '</div>' +
-                '<div class="markdown-content">' +
-                    marked.parse(report.content) +
-                '</div>' +
-                '<div class="report-nav">' +
-                    (prevReport ? '<a class="nav-btn" href="#report/' + encodeURIComponent(prevReport.category) + '/' + encodeURIComponent(prevReport.report.id) + '">&#8592; 上一篇: ' + prevReport.report.title + '</a>' : '<div class="nav-btn disabled">&#8592; 上一篇</div>') +
-                    (nextReport ? '<a class="nav-btn" href="#report/' + encodeURIComponent(nextReport.category) + '/' + encodeURIComponent(nextReport.report.id) + '">下一篇: ' + nextReport.report.title + ' &#8594;</a>' : '<div class="nav-btn disabled">下一篇 &#8594;</div>') +
-                '</div>';
+                '<div class="markdown-content">' + marked.parse(report.content) + '</div>' +
+                '<div class="report-nav">' + navPrev + navNext + '</div>';
 
-            // Highlight code blocks
             var codeBlocks = container.querySelectorAll('pre code');
-            for (var i = 0; i < codeBlocks.length; i++) {
-                hljs.highlightElement(codeBlocks[i]);
-            }
+            for (var i = 0; i < codeBlocks.length; i++) { hljs.highlightElement(codeBlocks[i]); }
 
-            // Smooth scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
-
-            // Close sidebar on mobile
-            if (window.innerWidth <= 768) {
-                document.getElementById('sidebar').classList.remove('open');
-            }
+            if (window.innerWidth <= 768) { document.getElementById('sidebar').classList.remove('open'); }
         }
 
-        // ==================== Search Functionality ====================
         function buildSearchIndex() {
             searchIndex = [];
-            var categories = Object.keys(reports);
-            for (var c = 0; c < categories.length; c++) {
-                var category = categories[c];
-                var categoryReports = reports[category];
-                for (var r = 0; r < categoryReports.length; r++) {
-                    var report = categoryReports[r];
-                    var plainText = report.content.replace(/[#*`>\-\[\](){}]/g, '').substring(0, 200);
-                    searchIndex.push({
-                        category: category,
-                        id: report.id,
-                        title: report.title,
-                        date: report.date,
-                        content: plainText,
-                        tags: report.tags
-                    });
+            var cats = Object.keys(reports);
+            for (var c = 0; c < cats.length; c++) {
+                var cat = cats[c];
+                var catReps = reports[cat];
+                for (var r = 0; r < catReps.length; r++) {
+                    var rep = catReps[r];
+                    var plainText = rep.content.replace(/[#*`>\-\[\](){}]/g, '').substring(0, 200);
+                    searchIndex.push({ category: cat, id: rep.id, title: rep.title, date: rep.date, content: plainText, tags: rep.tags });
                 }
             }
         }
 
-        function escapeHtml(str) {
-            var div = document.createElement('div');
-            div.appendChild(document.createTextNode(str));
-            return div.innerHTML;
-        }
-
-        function escapeRegex(string) {
-            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        }
+        function escapeHtml(str) { var d = document.createElement('div'); d.appendChild(document.createTextNode(str)); return d.innerHTML; }
+        function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
         function handleSearch(query) {
-            var resultsDiv = document.getElementById('searchResults');
-
-            if (!query || query.length < 2) {
-                resultsDiv.classList.remove('active');
-                return;
-            }
-
-            var lowerQuery = query.toLowerCase();
+            var rd = document.getElementById('searchResults');
+            if (!query || query.length < 2) { rd.classList.remove('active'); return; }
+            var lq = query.toLowerCase();
             var results = [];
             for (var i = 0; i < searchIndex.length; i++) {
                 var item = searchIndex[i];
-                if (item.title.toLowerCase().indexOf(lowerQuery) !== -1 ||
-                    item.content.toLowerCase().indexOf(lowerQuery) !== -1 ||
-                    item.tags.some(function(tag) { return tag.toLowerCase().indexOf(lowerQuery) !== -1; })) {
+                if (item.title.toLowerCase().indexOf(lq) !== -1 || item.content.toLowerCase().indexOf(lq) !== -1 || item.tags.some(function(t) { return t.toLowerCase().indexOf(lq) !== -1; })) {
                     results.push(item);
                 }
             }
-
             if (results.length === 0) {
-                resultsDiv.innerHTML = '<div class="search-result-item"><div class="search-result-title">無搜尋結果</div></div>';
+                rd.innerHTML = '<div class="search-result-item"><div class="search-result-title">無搜尋結果</div></div>';
             } else {
                 var html = '';
                 for (var i = 0; i < Math.min(results.length, 10); i++) {
                     var item = results[i];
-                    var highlightedTitle = highlightText(escapeHtml(item.title), query);
-                    var highlightedPreview = highlightText(escapeHtml(item.content.substring(0, 100)), query);
+                    var ht = highlightText(escapeHtml(item.title), query);
+                    var hp = highlightText(escapeHtml(item.content.substring(0, 100)), query);
                     html += '<div class="search-result-item" onclick="navigateToReport(\'' + item.category + '\', \'' + item.id + '\')">' +
-                                '<div class="search-result-title">' + highlightedTitle + '</div>' +
-                                '<div class="search-result-preview">' + highlightedPreview + '...</div>' +
+                                '<div class="search-result-title">' + ht + '</div>' +
+                                '<div class="search-result-preview">' + hp + '...</div>' +
                             '</div>';
                 }
-                resultsDiv.innerHTML = html;
+                rd.innerHTML = html;
             }
-
-            resultsDiv.classList.add('active');
+            rd.classList.add('active');
         }
 
         function highlightText(text, query) {
@@ -885,61 +433,28 @@
             return text.replace(regex, '<mark>$1</mark>');
         }
 
-        // Close search results when clicking outside
         document.addEventListener('click', function(e) {
-            if (!e.target.closest('.search-box')) {
-                document.getElementById('searchResults').classList.remove('active');
-            }
+            if (!e.target.closest('.search-box')) { document.getElementById('searchResults').classList.remove('active'); }
         });
 
-        // ==================== Theme Toggle ====================
         function toggleTheme() {
-            var body = document.body;
-            var isDark = body.getAttribute('data-theme') === 'dark';
-            body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            var b = document.body;
+            var isDark = b.getAttribute('data-theme') === 'dark';
+            b.setAttribute('data-theme', isDark ? 'light' : 'dark');
             localStorage.setItem('theme', isDark ? 'light' : 'dark');
         }
-
-        function initTheme() {
-            var savedTheme = localStorage.getItem('theme') || 'light';
-            document.body.setAttribute('data-theme', savedTheme);
-        }
-
-        // ==================== Mobile Sidebar Toggle ====================
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-        }
-
-        // ==================== Scroll to Top ====================
-        function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
+        function initTheme() { var t = localStorage.getItem('theme') || 'light'; document.body.setAttribute('data-theme', t); }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+        function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
         function initScrollListener() {
-            var backToTop = document.getElementById('backToTop');
-
+            var btt = document.getElementById('backToTop');
             window.addEventListener('scroll', function() {
-                if (window.scrollY > 300) {
-                    backToTop.classList.add('visible');
-                } else {
-                    backToTop.classList.remove('visible');
-                }
+                if (window.scrollY > 300) { btt.classList.add('visible'); } else { btt.classList.remove('visible'); }
             });
         }
-
-        // ==================== Keyboard Shortcuts ====================
         document.addEventListener('keydown', function(e) {
-            // Ctrl/Cmd + K to focus search
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                document.getElementById('searchInput').focus();
-            }
-
-            // Escape to close search results
-            if (e.key === 'Escape') {
-                document.getElementById('searchResults').classList.remove('active');
-                document.getElementById('searchInput').blur();
-            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); document.getElementById('searchInput').focus(); }
+            if (e.key === 'Escape') { document.getElementById('searchResults').classList.remove('active'); document.getElementById('searchInput').blur(); }
         });
     </script>
 </body>
