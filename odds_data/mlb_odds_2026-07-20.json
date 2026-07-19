@@ -1,0 +1,137 @@
+[
+  {
+    "game_id": 824410,
+    "teams": "Minnesota Twins @ Cleveland Guardians",
+    "over_line": 8.5,
+    "under_line": 8.5,
+    "over_odds": 1.85,
+    "under_odds": 1.85,
+    "source": "Manual Input"
+  },
+  {
+    "game_id": 823522,
+    "teams": "Pittsburgh Pirates @ New York Yankees",
+    "over_line": 9.0,
+    "under_line": 9.0,
+    "over_odds": 1.9,
+    "under_odds": 1.8,
+    "source": "Manual Input"
+  },
+  {
+    "game_id": 822788,
+    "teams": "Tampa Bay Rays @ Toronto Blue Jays",
+    "over_line": 8.0,
+    "under_line": 8.0,
+    "over_odds": 1.82,
+    "under_odds": 1.88,
+    "source": "Manual Input"
+  },
+  {
+    "game_id": 824736,
+    "teams": "Baltimore Orioles @ Boston Red Sox",
+    "over_line": 7.5,
+    "under_line": 7.5,
+    "over_odds": 1.75,
+    "under_odds": 1.95,
+    "source": "Manual Input"
+  },
+  {
+    "game_id": 823436,
+    "teams": "Los Angeles Dodgers @ Philadelphia Phillies",
+    "over_line": 9.5,
+    "under_line": 9.5,
+    "over_odds": 1.92,
+    "under_odds": 1.78,
+    "source": "Manual Input"
+  },
+  {
+    "game_id": 824898,
+    "teams": "San Diego Padres @ Atlanta Braves",
+    "over_line": 8.5,
+    "under_line": 8.5,
+    "over_odds": 1.88,
+    "under_odds": 1.82,
+    "source": "Manual Input"
+  },
+  {
+    "game_id": 824087,
+    "teams": "San Francisco Giants @ Kansas City Royals",
+    "over_line": 9.0,
+    "under_line": 9.0,
+    "over_odds": 1.85,
+    "under_odds": 1.85,
+    "source": "Manual Input"
+  },
+  {
+    "game_id": 823762,
+    "teams": "New York Mets @ Milwaukee Brewers",
+    "over_line": 8.5,
+    "under_line": 8.5,
+    "over_odds": 1.8,
+    "under_odds": 1.9,
+    "source": "Manual Input"
+  },
+  {
+    "game_id": 824654,
+    "teams": "Detroit Tigers @ Chicago Cubs",
+    "over_line": 8.5,
+    "under_line": 8.5,
+    "over_odds": 1.85,
+    "under_odds": 1.85,
+    "source": "Manual Input"
+  },
+  {
+    "game_id": 822874,
+    "teams": "Chicago White Sox @ Texas Rangers",
+    "over_line": 9.0,
+    "under_line": 9.0,
+    "over_odds": 1.85,
+    "under_odds": 1.85,
+    "source": "Manual Input"
+  },
+  {
+    "game_id": 824167,
+    "teams": "Miami Marlins @ Houston Astros",
+    "over_line": 8.5,
+    "under_line": 8.5,
+    "over_odds": 1.85,
+    "under_odds": 1.85,
+    "source": "Manual Input"
+  },
+  {
+    "game_id": 824328,
+    "teams": "Washington Nationals @ Colorado Rockies",
+    "over_line": 9.5,
+    "under_line": 9.5,
+    "over_odds": 1.85,
+    "under_odds": 1.85,
+    "source": "Manual Input"
+  },
+  {
+    "game_id": 825058,
+    "teams": "Athletics @ Arizona Diamondbacks",
+    "over_line": 8.5,
+    "under_line": 8.5,
+    "over_odds": 1.85,
+    "under_odds": 1.85,
+    "source": "Manual Input"
+  },
+  {
+    "game_id": 823112,
+    "teams": "Cincinnati Reds @ Seattle Mariners",
+    "over_line": 9.0,
+    "under_line": 9.0,
+    "over_odds": 1.85,
+    "under_odds": 1.85,
+    "source": "Manual Input"
+  },
+  {
+    "game_id": 824006,
+    "teams": "St. Louis Cardinals @ Los Angeles Angels",
+    "over_line": 8.5,
+    "under_line": 8.5,
+    "over_odds": 1.85,
+    "under_odds": 1.85,
+    "source": "Manual Input"
+  }
+]
