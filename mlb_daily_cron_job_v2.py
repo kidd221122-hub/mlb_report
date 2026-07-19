@@ -82,7 +82,41 @@ PARK_FACTORS = {
     "Oracle Park": 0.88,              # San Francisco
     "Petco Park": 0.87,               # San Diego
     "Dodger Stadium": 0.86,           # LA Dodgers
-    "Chase Field": 0.85,              # Arizona
+    "Chase Field": 0.85,
+}
+
+# 球隊名稱到城市的映射（用於天氣 API 查詢）
+CITY_MAPPING = {
+    "Toronto Blue Jays": "Toronto",
+    "Chicago White Sox": "Chicago",
+    "Los Angeles Angels": "Anaheim",
+    "San Francisco Giants": "San Francisco",
+    "San Diego Padres": "San Diego",
+    "Los Angeles Dodgers": "Los Angeles",
+    "Houston Astros": "Houston",
+    "Seattle Mariners": "Seattle",
+    "Oakland Athletics": "Oakland",
+    "Texas Rangers": "Arlington",
+    "Boston Red Sox": "Boston",
+    "New York Yankees": "New York",
+    "New York Mets": "New York",
+    "Philadelphia Phillies": "Philadelphia",
+    "Baltimore Orioles": "Baltimore",
+    "Tampa Bay Rays": "St. Petersburg",
+    "Cleveland Guardians": "Cleveland",
+    "Minnesota Twins": "Minneapolis",
+    "Detroit Tigers": "Detroit",
+    "Kansas City Royals": "Kansas City",
+    "Chicago Cubs": "Chicago",
+    "Cincinnati Reds": "Cincinnati",
+    "Milwaukee Brewers": "Milwaukee",
+    "St. Louis Cardinals": "St. Louis",
+    "Atlanta Braves": "Atlanta",
+    "Miami Marlins": "Miami",
+    "Washington Nationals": "Washington",
+    "Arizona Diamondbacks": "Phoenix",
+    "Colorado Rockies": "Denver",
+    "Pittsburgh Pirates": "Pittsburgh",
 }
 
 # 聯盟平均基準值
@@ -1002,81 +1036,6 @@ if __name__ == "__main__":
             else:
                 df_bullpen = pd.DataFrame()
                 print("ℹ️ 當日無牛棚投手出賽數據。")
-        p_stats = None
-        max_retries = 3
-        
-        for attempt in range(max_retries):
-            try:
-                if attempt > 0:
-                    wait_time = random.uniform(5.0, 10.0)
-                    print(f"      ⚠️ 偵測到大聯盟限速或卡頓，啟動第 {attempt + 1} 次全面重試，後台避風頭 {wait_time:.1f} 秒...")
-                    time.sleep(wait_time)
-                
-                p_stats = get_pitcher_stats(p_id, season=current_season)
-                break
-            except Exception as retry_err:
-                p_stats = None
-                if attempt == max_retries - 1:
-                    print(f"      ❌ 嘗試 {max_retries}次 後仍連線失敗，原因: {retry_err}")
-        
-        if p_stats is not None and isinstance(p_stats, pd.DataFrame) and not p_stats.empty:
-            pitchers_data_list.append(p_stats)
-        else:
-            print(f"      ⚠️ 投手 ID {p_id} 最終無法取得有效數據，跳過此球員。")
-    
-    if pitchers_data_list:
-        df_pitchers = pd.concat(pitchers_data_list, ignore_index=True)
-    else:
-        df_pitchers = pd.DataFrame()
-    
-    # 步驟 4：只抓取「今天有出賽」的牛棚投手（避免 406 封鎖）
-    print("\n🎯 篩選今天有出賽的牛棚投手...")
-    active_bullpen_ids = []
-    games_processed = 0
-    
-    for _, row in df_games.iterrows():
-        game_id = row["Game_ID"]
-        games_processed += 1
-        
-        # 從 boxscore 中提取今天有投球的牛棚投手
-        box_url = f"https://{MLB_BASE_URL}/game/{game_id}/boxscore"
-        try:
-            box_res = requests.get(box_url, headers=get_safe_headers(), timeout=10)
-            if box_res.status_code == 200:
-                box_data = box_res.json()
-                teams = box_data.get("teams", {})
-                
-                for side in ["away", "home"]:
-                    team_box = teams.get(side, {})
-                    players = team_box.get("players", {})
-                    
-                    # 檢查所有投手（包含先發和牛棚）
-                    for player_key, player_data in players.items():
-                        stats = player_data.get("stats", {}).get("pitching", {})
-                        
-                        # 如果有投球局數 > 0，表示今天有上場
-                        ip = stats.get("inningsPitched", "0")
-                        if ip and float(ip) > 0:
-                            # 提取投手 ID（從 player_key 如 "ID123456" 轉成 123456）
-                            if player_key.startswith("ID"):
-                                pid = int(player_key[2:])
-                                active_bullpen_ids.append(pid)
-        except Exception as e:
-            print(f"  ⚠️ 遊戲 {game_id} boxscore 抓取失敗: {e}")
-            continue
-    
-    # 去重
-    active_bullpen_ids = list(set(active_bullpen_ids))
-    print(f"✅ 從 {games_processed} 場比賽中篩選出 {len(active_bullpen_ids)} 位今天有出賽的牛棚投手")
-    
-    # 步驟 5：抓取牛棚投手賽季數據
-    if active_bullpen_ids:
-        print("📡 正在抓取牛棚投手賽季數據...")
-        df_bullpen = get_bullpen_season_stats(active_bullpen_ids, season=current_season)
-    else:
-        df_bullpen = pd.DataFrame()
-        print("ℹ️ 當日無牛棚投手出賽數據。")
-    
     # 步驟 6：寫入 Google Sheets
     print("\n☁️ 正在連線至 Google Sheets 進行智慧同步 (Upsert)...")
     
