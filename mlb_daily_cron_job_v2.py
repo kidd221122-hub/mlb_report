@@ -145,8 +145,9 @@ def get_weather_data(city_name, state_code=None):
             - humidity: 濕度 %
             - condition: 天氣狀況
     """
+    # 如果 API Key 未設定，直接回傳預設值（不請求 API）
     if OPENWEATHER_API_KEY == 'YOUR_API_KEY_HERE':
-        print("⚠️ 尚未設定 OpenWeatherMap API Key，使用預設天氣數據")
+        print("ℹ️ 天氣 API 未啟用，使用預設天氣數據（溫度 75°F, 風速 5mph）")
         return {
             "temperature_f": 75,
             "wind_speed_mph": 5,
@@ -191,6 +192,17 @@ def get_weather_data(city_name, state_code=None):
                 "wind_deg": wind_deg,
                 "humidity": humidity,
                 "condition": condition
+            }
+        elif response.status_code == 401:
+            print("⚠️ 天氣 API 401 錯誤：API Key 無效或未生效")
+            print("   請確認 API Key 已申請，且等待 10-60 分鐘生效")
+            print("   暫時使用預設天氣數據繼續執行...")
+            return {
+                "temperature_f": 75,
+                "wind_speed_mph": 5,
+                "wind_deg": 180,
+                "humidity": 50,
+                "condition": "Clear"
             }
         else:
             print(f"⚠️ 天氣 API 請求失敗，狀態碼: {response.status_code}")
