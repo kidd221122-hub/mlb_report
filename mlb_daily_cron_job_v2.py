@@ -834,15 +834,38 @@ if __name__ == "__main__":
     
     print(f"📅 鎖定查詢之美國日期為: {us_today_date}，目標賽季: {current_season}")
     
-    # 步驟 1：抓取比賽數據
-    print(f"\n📡 正在從 MLB 官方伺服器抓取 {us_today_date} 的比賽數據...")
-    df_games = get_games_by_date(us_today_date)
+    # 計算明天日期
+    today_dt = datetime.datetime.strptime(us_today_date, "%Y-%m-%d")
+    tomorrow_dt = today_dt + datetime.timedelta(days=1)
+    tomorrow_date = tomorrow_dt.strftime("%Y-%m-%d")
+    print(f"📅 同時查詢明天日期: {tomorrow_date}")
     
-    if df_games is None or df_games.empty:
-        print(f"📅 日期 {us_today_date} 當天大聯盟沒有安排常規賽事。主流程提前結束。")
+    # 步驟 1：抓取今天和明天的比賽數據
+    print(f"\n📡 正在從 MLB 官方伺服器抓取 {us_today_date} 和 {tomorrow_date} 的比賽數據...")
+    df_today = get_games_by_date(us_today_date)
+    df_tomorrow = get_games_by_date(tomorrow_date)
+    
+    # 合併今天和明天的數據
+    if df_today is not None and not df_today.empty:
+        print(f"✅ 成功獲取 {us_today_date} 比賽資料，當日共計 {len(df_today)} 場對決。")
+    else:
+        df_today = pd.DataFrame()
+        print(f"⚠️ {us_today_date} 當天大聯盟沒有安排常規賽事。")
+    
+    if df_tomorrow is not None and not df_tomorrow.empty:
+        print(f"✅ 成功獲取 {tomorrow_date} 比賽資料，當日共計 {len(df_tomorrow)} 場對決。")
+    else:
+        df_tomorrow = pd.DataFrame()
+        print(f"⚠️ {tomorrow_date} 當天大聯盟沒有安排常規賽事。")
+    
+    # 合併今天和明天的數據
+    df_games = pd.concat([df_today, df_tomorrow], ignore_index=True) if not df_today.empty or not df_tomorrow.empty else pd.DataFrame()
+    
+    if df_games.empty:
+        print(f"📅 今天和明天都沒有安排常規賽事。主流程提前結束。")
         sys.exit(0)
     else:
-        print(f"✅ 成功獲取比賽資料，當日共計 {len(df_games)} 場對決。")
+        print(f"📊 今天和明天共計 {len(df_games)} 場對決（今天 {len(df_today)} 場，明天 {len(df_tomorrow)} 場）。")
     
     # 步驟 2：收集所有先發投手 ID
     pitcher_ids_set = set()
@@ -971,8 +994,10 @@ if __name__ == "__main__":
     print("\n🏁 === MLB 每日數據自動化同步流水線 順利執行完畢 ===")
     print("\n📊 資料表結構說明：")
     print("  - team_stats: 比賽基本數據 + 先發投手 + 球隊當場打擊/投球 + 場地因子 + 天氣數據")
+    print("    • 包含今天和明天的比賽")
+    print("    • Game_Date 欄位區分日期（YYYY-MM-DD）")
     print("  - starting_pitchers: 先發投手賽季數據（ERA, WHIP, K%, BB%, BABIP, K-BB%）")
-    print("  - bullpen_record: 牛棚投手賽季數據（SV, HLD, ERA, WHIP, K-BB%）")
+    print("  - bullpen_record: 今天有出賽的牛棚投手賽季數據（SV, HLD, ERA, WHIP, K-BB%）")
     print("\n💡 預測模型使用建議：")
     print("  1. 從 team_stats 取得場地因子與天氣調整係數")
     print("  2. 從 team_stats 取得球隊當場打擊數據（OBP, SLG, OPS）")
@@ -984,3 +1009,6 @@ if __name__ == "__main__":
     print("  - Weather_Wind_Speed_MPH: 風速")
     print("  - Weather_Wind_Deg: 風向度數")
     print("  - Weather_Adjustment: 天氣調整係數（預設 1.0）")
+    print("\n📅 日期範圍：")
+    print(f"  - 今天: {us_today_date}")
+    print(f"  - 明天: {tomorrow_date}")
