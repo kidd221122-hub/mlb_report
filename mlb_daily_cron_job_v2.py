@@ -371,14 +371,22 @@ def upsert_to_google_sheet_hybrid(spreadsheet_id, sheet_name, df, id_column_name
         insert_count = 0
         df_filled_new = df.fillna("")
 
+        def col_letter(n):
+            """將數字轉換為 Excel 欄位字母 (1=A, 2=B, ..., 27=AA)"""
+            letters = ""
+            while n > 0:
+                n, remainder = divmod(n - 1, 26)
+                letters = chr(65 + remainder) + letters
+            return letters
+
         for _, row in df_filled_new.iterrows():
             current_id = str(row[id_column_name])
             row_list = row.values.tolist()
 
             if current_id in id_to_row_map:
                 target_row_number = id_to_row_map[current_id]
-                end_column_letter = chr(64 + len(row_list))
-                cell_range = f"A{target_row_number}:{end_column_letter}{target_row_number}"
+                end_col = col_letter(len(row_list))
+                cell_range = f"A{target_row_number}:{end_col}{target_row_number}"
                 worksheet.update([row_list], cell_range)
                 update_count += 1
             else:
