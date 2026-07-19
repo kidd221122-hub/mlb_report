@@ -1,3 +1,51 @@
+# MLB 大小分預測系統 - 完整程式碼
+
+## 📋 專案說明
+
+這是一個完整的 MLB 大小分預測數據抓取系統，整合了：
+- MLB StatsAPI 免費資料
+- OpenWeatherMap 天氣 API
+- Google Sheets 自動同步
+- 大小分預測模型所需的所有指標
+
+## 🚀 快速開始
+
+### 1. 安裝依賴
+
+```bash
+pip install gspread oauth2client pandas pytz requests scipy
+```
+
+如果需要天氣 API：
+```bash
+pip install openweather-client-python
+```
+
+### 2. 設定環境變數
+
+```bash
+export MLB_GOOGLE_SHEET_ID="YOUR_SPREADSHEET_ID"
+export GOOGLE_CREDENTIALS_PATH="/path/to/credentials.json"
+export OPENWEATHER_API_KEY="YOUR_OPENWEATHER_API_KEY"
+```
+
+### 3. 執行腳本
+
+```bash
+# 執行今日數據
+python3 mlb_daily_cron_job_v2.py
+
+# 或指定日期
+python3 mlb_daily_cron_job_v2.py 2026-07-18
+```
+
+---
+
+## 💻 完整程式碼
+
+以下是 `mlb_daily_cron_job_v2.py` 的完整內容：
+
+```python
 #!/usr/bin/env python3
 # /// script
 # dependencies = [
@@ -49,7 +97,7 @@ TARGET_SPREADSHEET_ID = os.environ.get('MLB_GOOGLE_SHEET_ID', 'YOUR_SPREADSHEET_
 GOOGLE_CREDENTIALS_FILE = os.environ.get('GOOGLE_CREDENTIALS_PATH', 'credentials.json')
 
 # OpenWeatherMap API 配置（免費版）
-OPENWEATHER_API_KEY = os.environ.get('OPENWEATHER_API_KEY', '')
+OPENWEATHER_API_KEY = os.environ.get('OPENWEATHER_API_KEY', 'YOUR_API_KEY_HERE')
 OW_BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
 
 # MLB API 配置
@@ -145,9 +193,8 @@ def get_weather_data(city_name, state_code=None):
             - humidity: 濕度 %
             - condition: 天氣狀況
     """
-    # 如果 API Key 未設定，直接回傳預設值（不請求 API）
-    if not OPENWEATHER_API_KEY or OPENWEATHER_API_KEY == '':
-        print("ℹ️ 天氣 API 未啟用，使用預設天氣數據（溫度 75°F, 風速 5mph）")
+    if OPENWEATHER_API_KEY == 'YOUR_API_KEY_HERE':
+        print("⚠️ 尚未設定 OpenWeatherMap API Key，使用預設天氣數據")
         return {
             "temperature_f": 75,
             "wind_speed_mph": 5,
@@ -192,17 +239,6 @@ def get_weather_data(city_name, state_code=None):
                 "wind_deg": wind_deg,
                 "humidity": humidity,
                 "condition": condition
-            }
-        elif response.status_code == 401:
-            print("⚠️ 天氣 API 401 錯誤：API Key 無效或未生效")
-            print("   請確認 API Key 已申請，且等待 10-60 分鐘生效")
-            print("   暫時使用預設天氣數據繼續執行...")
-            return {
-                "temperature_f": 75,
-                "wind_speed_mph": 5,
-                "wind_deg": 180,
-                "humidity": 50,
-                "condition": "Clear"
             }
         else:
             print(f"⚠️ 天氣 API 請求失敗，狀態碼: {response.status_code}")
@@ -626,17 +662,12 @@ def get_games_by_date(game_date):
         
         # 子步驟 C：取得天氣數據
         try:
-            # 從賽程資料中提取城市名稱（只有 team.name，沒有 locationName）
-            away_city = away_team.get("team", {}).get("name", "")
-            home_city = home_team.get("team", {}).get("name", "")
-            
-            # 如果 team.name 是完整名稱（如 "Toronto Blue Jays"），需要轉換成城市
-            # 使用 city_mapping 轉換
-            home_city_clean = CITY_MAPPING.get(home_city, home_city)
-            away_city_clean = CITY_MAPPING.get(away_city, away_city)
+            # 從賽程資料中提取城市名稱
+            away_city = away_team.get("team", {}).get("locationName", "")
+            home_city = home_team.get("team", {}).get("locationName", "")
             
             # 使用主隊城市查詢天氣
-            weather_data = get_weather_data(home_city_clean)
+            weather_data = get_weather_data(home_city)
         except Exception as e:
             print(f"⚠️ 天氣數據抓取失敗: {e}")
             weather_data = None
@@ -761,50 +792,33 @@ def get_bullpen_season_stats(bullpen_ids, season=2026):
     if not bullpen_ids:
         return pd.DataFrame()
     
-    # 批次處理：每批 20 人，批次間隔 10 秒
-    BATCH_SIZE = 20
-    DELAY_BETWEEN_BATCHES = 10
-    
     bullpen_list = []
+    processed_count = 0
     total_count = len(bullpen_ids)
-    total_batches = (total_count + BATCH_SIZE - 1) // BATCH_SIZE
     
-    for batch_idx in range(total_batches):
-        start = batch_idx * BATCH_SIZE
-        end = min(start + BATCH_SIZE, total_count)
-        batch = bullpen_ids[start:end]
+    for pid in bullpen_ids:
+        processed_count += 1
+        print(f"   [進度 {processed_count}/{total_count}] 正在獲取牛棚投手 ID: {pid} 的賽季統計...")
         
-        print(f"   📦 批次 {batch_idx + 1}/{total_batches}：處理 {len(batch)} 位投手")
+        p_stats = None
+        max_retries = 2
         
-        batch_results = []
-        for pid in batch:
-            p_stats = None
-            max_retries = 2
-            
-            for attempt in range(max_retries):
-                try:
-                    if attempt > 0:
-                        wait_time = random.uniform(3.0, 6.0)
-                        print(f"      ⚠️ 重試中，等待 {wait_time:.1f} 秒...")
-                        time.sleep(wait_time)
-                    
-                    p_stats = get_pitcher_stats(pid, season=season)
-                    break
-                except Exception as retry_err:
-                    p_stats = None
-                    if attempt == max_retries - 1:
-                        print(f"      ❌ 嘗試 {max_retries}次 後仍連線失敗，跳過投手 {pid}")
-            
-            if p_stats is not None and isinstance(p_stats, pd.DataFrame) and not p_stats.empty:
-                batch_results.append(p_stats)
+        for attempt in range(max_retries):
+            try:
+                if attempt > 0:
+                    wait_time = random.uniform(3.0, 6.0)
+                    print(f"      ⚠️ 重試中，等待 {wait_time:.1f} 秒...")
+                    time.sleep(wait_time)
+                
+                p_stats = get_pitcher_stats(pid, season=season)
+                break
+            except Exception as retry_err:
+                p_stats = None
+                if attempt == max_retries - 1:
+                    print(f"      ❌ 嘗試 {max_retries}次 後仍連線失敗，跳過投手 {pid}")
         
-        bullpen_list.extend(batch_results)
-        
-        # 批次間歇（避免被 406 擋掉）
-        if batch_idx < total_batches - 1:
-            delay = DELAY_BETWEEN_BATCHES + random.uniform(0, 5)
-            print(f"   ⏳ 等待 {delay:.1f} 秒...")
-            time.sleep(delay)
+        if p_stats is not None and isinstance(p_stats, pd.DataFrame) and not p_stats.empty:
+            bullpen_list.append(p_stats)
     
     if bullpen_list:
         return pd.concat(bullpen_list, ignore_index=True)
@@ -822,13 +836,11 @@ if __name__ == "__main__":
     print("🎬 === 開始執行 MLB 每日數據自動化同步流水線（大小分預測完整版 v2.0）===")
     
     # 取得日期參數
-    has_date_arg = len(sys.argv) > 1
-    if has_date_arg:
+    if len(sys.argv) > 1:
         us_today_date = sys.argv[1]
         try:
             current_season = int(us_today_date.split("-")[0])
-            print(f"📅 命令列參數偵測成功！指定日期: {us_today_date}")
-            print(f"   → 只抓取該日期比賽數據，不抓取投手賽季數據")
+            print(f"命令列參數偵測成功！")
         except Exception:
             print("❌ 輸入的日期格式有誤，請確保格式為 YYYY-MM-DD (例如: 2024-04-15)")
             sys.exit(1)
@@ -837,171 +849,40 @@ if __name__ == "__main__":
         current_us_time = datetime.datetime.now(tz_us_eastern)
         us_today_date = current_us_time.strftime("%Y-%m-%d")
         current_season = current_us_time.year
-        print(f"📅 未偵測到日期參數，自動啟用今日即時同步機制。")
+        print(f"未偵測到日期參數，自動啟用今日即時同步機制。")
     
     print(f"📅 鎖定查詢之美國日期為: {us_today_date}，目標賽季: {current_season}")
     
-    # 計算明天日期
-    today_dt = datetime.datetime.strptime(us_today_date, "%Y-%m-%d")
-    tomorrow_dt = today_dt + datetime.timedelta(days=1)
-    tomorrow_date = tomorrow_dt.strftime("%Y-%m-%d")
-    
-    # ==============================================================================
     # 步驟 1：抓取比賽數據
-    # ==============================================================================
-    if has_date_arg:
-        # 模式 A：只抓取指定日期的比賽（不抓投手數據）
-        print(f"\n📡 正在從 MLB 官方伺服器抓取 {us_today_date} 的比賽數據...")
-        df_games = get_games_by_date(us_today_date)
-        
-        if df_games is None or df_games.empty:
-            print(f"📅 日期 {us_today_date} 當天大聯盟沒有安排常規賽事。主流程提前結束。")
-            sys.exit(0)
-        else:
-            print(f"✅ 成功獲取 {us_today_date} 比賽資料，當日共計 {len(df_games)} 場對決。")
-            print(f"ℹ️ 指定日期模式：只抓取比賽數據，不抓取投手賽季數據。")
-    else:
-        # 模式 B：抓取今天 + 明天比賽，並抓取投手賽季數據
-        print(f"\n📡 正在從 MLB 官方伺服器抓取 {us_today_date} 和 {tomorrow_date} 的比賽數據...")
-        df_today = get_games_by_date(us_today_date)
-        df_tomorrow = get_games_by_date(tomorrow_date)
-        
-        # 合併今天和明天的數據
-        if df_today is not None and not df_today.empty:
-            print(f"✅ 成功獲取 {us_today_date} 比賽資料，當日共計 {len(df_today)} 場對決。")
-        else:
-            df_today = pd.DataFrame()
-            print(f"⚠️ {us_today_date} 當天大聯盟沒有安排常規賽事。")
-        
-        if df_tomorrow is not None and not df_tomorrow.empty:
-            print(f"✅ 成功獲取 {tomorrow_date} 比賽資料，當日共計 {len(df_tomorrow)} 場對決。")
-        else:
-            df_tomorrow = pd.DataFrame()
-            print(f"⚠️ {tomorrow_date} 當天大聯盟沒有安排常規賽事。")
-        
-        # 合併今天和明天的數據
-        df_games = pd.concat([df_today, df_tomorrow], ignore_index=True) if not df_today.empty or not df_tomorrow.empty else pd.DataFrame()
-        
-        if df_games.empty:
-            print(f"📅 今天和明天都沒有安排常規賽事。主流程提前結束。")
-            sys.exit(0)
-        else:
-            print(f"📊 今天和明天共計 {len(df_games)} 場對決（今天 {len(df_today)} 場，明天 {len(df_tomorrow)} 場）。")
-            print(f"ℹ️ 自動模式：將抓取今天比賽的先發投手與牛棚投手賽季數據。")
+    print(f"\n📡 正在從 MLB 官方伺服器抓取 {us_today_date} 的比賽數據...")
+    df_games = get_games_by_date(us_today_date)
     
-    # ==============================================================================
-    # 步驟 2：只在不帶日期參數時才抓取投手數據
-    # ==============================================================================
-    if has_date_arg:
-        # 指定日期模式：跳過投手數據抓取
-        print(f"\n⏭️ 跳過投手數據抓取（指定日期模式）")
-        df_pitchers = pd.DataFrame()
-        df_bullpen = pd.DataFrame()
+    if df_games is None or df_games.empty:
+        print(f"📅 日期 {us_today_date} 當天大聯盟沒有安排常規賽事。主流程提前結束。")
+        sys.exit(0)
     else:
-        # 自動模式：抓取先發投手和牛棚投手賽季數據
+        print(f"✅ 成功獲取比賽資料，當日共計 {len(df_games)} 場對決。")
+    
+    # 步驟 2：收集所有先發投手 ID
+    pitcher_ids_set = set()
+    for _, row in df_games.iterrows():
+        away_pid = row["Away_Started_Pitcher_ID"]
+        home_pid = row["Home_Started_Pitcher_ID"]
+        if away_pid and int(away_pid) != 0:
+            pitcher_ids_set.add(int(away_pid))
+        if home_pid and int(home_pid) != 0:
+            pitcher_ids_set.add(int(home_pid))
+    
+    print(f"🎯 經交叉比對，當日共需穿透抓取 {len(pitcher_ids_set)} 位先發投手的賽季數據...")
+    
+    # 步驟 3：抓取先發投手賽季數據
+    pitchers_data_list = []
+    processed_count = 0
+    
+    for p_id in pitcher_ids_set:
+        processed_count += 1
+        print(f"   [進度 {processed_count}/{len(pitcher_ids_set)}] 正在獲取先發投手 ID: {p_id} 的賽季統計...")
         
-        # 只抓取「今天」的先發投手（不抓明天的）
-        df_today_games = df_games[df_games["Game_Date"] == us_today_date] if not df_games.empty else pd.DataFrame()
-        
-        if df_today_games.empty:
-            print(f"\n⚠️ 今天沒有比賽，跳過投手數據抓取。")
-            df_pitchers = pd.DataFrame()
-            df_bullpen = pd.DataFrame()
-        else:
-            # 步驟 2：收集今天比賽的先發投手 ID
-            pitcher_ids_set = set()
-            for _, row in df_today_games.iterrows():
-                away_pid = row["Away_Started_Pitcher_ID"]
-                home_pid = row["Home_Started_Pitcher_ID"]
-                if away_pid and int(away_pid) != 0:
-                    pitcher_ids_set.add(int(away_pid))
-                if home_pid and int(home_pid) != 0:
-                    pitcher_ids_set.add(int(home_pid))
-            
-            print(f"\n🎯 經交叉比對，今日共需抓取 {len(pitcher_ids_set)} 位先發投手的賽季數據...")
-            
-            # 步驟 3：抓取先發投手賽季數據
-            pitchers_data_list = []
-            processed_count = 0
-            
-            for p_id in pitcher_ids_set:
-                processed_count += 1
-                print(f"   [進度 {processed_count}/{len(pitcher_ids_set)}] 正在獲取先發投手 ID: {p_id} 的賽季統計...")
-                
-                p_stats = None
-                max_retries = 3
-                
-                for attempt in range(max_retries):
-                    try:
-                        if attempt > 0:
-                            wait_time = random.uniform(5.0, 10.0)
-                            print(f"      ⚠️ 偵測到大聯盟限速或卡頓，啟動第 {attempt + 1} 次全面重試，後台避風頭 {wait_time:.1f} 秒...")
-                            time.sleep(wait_time)
-                        
-                        p_stats = get_pitcher_stats(p_id, season=current_season)
-                        break
-                    except Exception as retry_err:
-                        p_stats = None
-                        if attempt == max_retries - 1:
-                            print(f"      ❌ 嘗試 {max_retries}次 後仍連線失敗，原因: {retry_err}")
-                
-                if p_stats is not None and isinstance(p_stats, pd.DataFrame) and not p_stats.empty:
-                    pitchers_data_list.append(p_stats)
-                else:
-                    print(f"      ⚠️ 投手 ID {p_id} 最終無法取得有效數據，跳過此球員。")
-            
-            if pitchers_data_list:
-                df_pitchers = pd.concat(pitchers_data_list, ignore_index=True)
-            else:
-                df_pitchers = pd.DataFrame()
-            
-            # 步驟 4：只抓取「今天有出賽」的牛棚投手
-            print("\n🎯 篩選今天有出賽的牛棚投手...")
-            active_bullpen_ids = []
-            games_processed = 0
-            
-            for _, row in df_today_games.iterrows():
-                game_id = row["Game_ID"]
-                games_processed += 1
-                
-                # 從 boxscore 中提取今天有投球的牛棚投手
-                box_url = f"https://{MLB_BASE_URL}/game/{game_id}/boxscore"
-                try:
-                    box_res = requests.get(box_url, headers=get_safe_headers(), timeout=10)
-                    if box_res.status_code == 200:
-                        box_data = box_res.json()
-                        teams = box_data.get("teams", {})
-                        
-                        for side in ["away", "home"]:
-                            team_box = teams.get(side, {})
-                            players = team_box.get("players", {})
-                            
-                            # 檢查所有投手（包含先發和牛棚）
-                            for player_key, player_data in players.items():
-                                stats = player_data.get("stats", {}).get("pitching", {})
-                                
-                                # 如果有投球局數 > 0，表示今天有上場
-                                ip = stats.get("inningsPitched", "0")
-                                if ip and float(ip) > 0:
-                                    # 提取投手 ID（從 player_key 如 "ID123456" 轉成 123456）
-                                    if player_key.startswith("ID"):
-                                        pid = int(player_key[2:])
-                                        active_bullpen_ids.append(pid)
-                except Exception as e:
-                    print(f"  ⚠️ 遊戲 {game_id} boxscore 抓取失敗: {e}")
-                    continue
-            
-            # 去重
-            active_bullpen_ids = list(set(active_bullpen_ids))
-            print(f"✅ 從 {games_processed} 場比賽中篩選出 {len(active_bullpen_ids)} 位今天有出賽的牛棚投手")
-            
-            # 步驟 5：抓取牛棚投手賽季數據
-            if active_bullpen_ids:
-                print("📡 正在抓取牛棚投手賽季數據...")
-                df_bullpen = get_bullpen_season_stats(active_bullpen_ids, season=current_season)
-            else:
-                df_bullpen = pd.DataFrame()
-                print("ℹ️ 當日無牛棚投手出賽數據。")
         p_stats = None
         max_retries = 3
         
@@ -1029,53 +910,31 @@ if __name__ == "__main__":
     else:
         df_pitchers = pd.DataFrame()
     
-    # 步驟 4：只抓取「今天有出賽」的牛棚投手（避免 406 封鎖）
-    print("\n🎯 篩選今天有出賽的牛棚投手...")
-    active_bullpen_ids = []
-    games_processed = 0
-    
+    # 步驟 4：收集所有牛棚投手 ID
+    all_bullpen_ids = set()
     for _, row in df_games.iterrows():
-        game_id = row["Game_ID"]
-        games_processed += 1
+        away_bp = row.get("Away_Bullpen_IDS", "")
+        home_bp = row.get("Home_Bullpen_IDS", "")
         
-        # 從 boxscore 中提取今天有投球的牛棚投手
-        box_url = f"https://{MLB_BASE_URL}/game/{game_id}/boxscore"
-        try:
-            box_res = requests.get(box_url, headers=get_safe_headers(), timeout=10)
-            if box_res.status_code == 200:
-                box_data = box_res.json()
-                teams = box_data.get("teams", {})
-                
-                for side in ["away", "home"]:
-                    team_box = teams.get(side, {})
-                    players = team_box.get("players", {})
-                    
-                    # 檢查所有投手（包含先發和牛棚）
-                    for player_key, player_data in players.items():
-                        stats = player_data.get("stats", {}).get("pitching", {})
-                        
-                        # 如果有投球局數 > 0，表示今天有上場
-                        ip = stats.get("inningsPitched", "0")
-                        if ip and float(ip) > 0:
-                            # 提取投手 ID（從 player_key 如 "ID123456" 轉成 123456）
-                            if player_key.startswith("ID"):
-                                pid = int(player_key[2:])
-                                active_bullpen_ids.append(pid)
-        except Exception as e:
-            print(f"  ⚠️ 遊戲 {game_id} boxscore 抓取失敗: {e}")
-            continue
+        if away_bp and str(away_bp) != "nan":
+            for pid in str(away_bp).split("|"):
+                if pid.strip():
+                    all_bullpen_ids.add(int(pid.strip()))
+        
+        if home_bp and str(home_bp) != "nan":
+            for pid in str(home_bp).split("|"):
+                if pid.strip():
+                    all_bullpen_ids.add(int(pid.strip()))
     
-    # 去重
-    active_bullpen_ids = list(set(active_bullpen_ids))
-    print(f"✅ 從 {games_processed} 場比賽中篩選出 {len(active_bullpen_ids)} 位今天有出賽的牛棚投手")
+    print(f"\n🎯 經交叉比對，當日共需抓取 {len(all_bullpen_ids)} 位牛棚投手的賽季數據...")
     
     # 步驟 5：抓取牛棚投手賽季數據
-    if active_bullpen_ids:
+    if all_bullpen_ids:
         print("📡 正在抓取牛棚投手賽季數據...")
-        df_bullpen = get_bullpen_season_stats(active_bullpen_ids, season=current_season)
+        df_bullpen = get_bullpen_season_stats(list(all_bullpen_ids), season=current_season)
     else:
         df_bullpen = pd.DataFrame()
-        print("ℹ️ 當日無牛棚投手出賽數據。")
+        print("⚠️ 當日無牛棚投手數據需要抓取。")
     
     # 步驟 6：寫入 Google Sheets
     print("\n☁️ 正在連線至 Google Sheets 進行智慧同步 (Upsert)...")
@@ -1109,15 +968,8 @@ if __name__ == "__main__":
     print("\n🏁 === MLB 每日數據自動化同步流水線 順利執行完畢 ===")
     print("\n📊 資料表結構說明：")
     print("  - team_stats: 比賽基本數據 + 先發投手 + 球隊當場打擊/投球 + 場地因子 + 天氣數據")
-    print("    • 自動模式：包含今天和明天的比賽")
-    print("    • 指定日期模式：只包含指定日期的比賽")
-    print("    • Game_Date 欄位區分日期（YYYY-MM-DD）")
-    print("  - starting_pitchers: 先發投手整季數據（ERA, WHIP, K%, BB%, BABIP, K-BB%）")
-    print("    • 自動模式：只抓取今天比賽的先發投手")
-    print("    • 指定日期模式：不抓取")
-    print("  - bullpen_record: 牛棚投手整季數據（SV, HLD, ERA, WHIP, K-BB%）")
-    print("    • 自動模式：只抓取今天有出賽的牛棚投手")
-    print("    • 指定日期模式：不抓取")
+    print("  - starting_pitchers: 先發投手賽季數據（ERA, WHIP, K%, BB%, BABIP, K-BB%）")
+    print("  - bullpen_record: 牛棚投手賽季數據（SV, HLD, ERA, WHIP, K-BB%）")
     print("\n💡 預測模型使用建議：")
     print("  1. 從 team_stats 取得場地因子與天氣調整係數")
     print("  2. 從 team_stats 取得球隊當場打擊數據（OBP, SLG, OPS）")
@@ -1129,13 +981,5 @@ if __name__ == "__main__":
     print("  - Weather_Wind_Speed_MPH: 風速")
     print("  - Weather_Wind_Deg: 風向度數")
     print("  - Weather_Adjustment: 天氣調整係數（預設 1.0）")
-    
-    if has_date_arg:
-        print(f"\n📅 執行模式：指定日期模式")
-        print(f"  - 日期: {us_today_date}")
-        print(f"  - 只抓取比賽數據，不抓取投手賽季數據")
-    else:
-        print(f"\n📅 執行模式：自動模式")
-        print(f"  - 今天: {us_today_date}")
-        print(f"  - 明天: {tomorrow_date}")
-        print(f"  - 抓取今天比賽的先發投手與牛棚投手整季數據")
+
+```
