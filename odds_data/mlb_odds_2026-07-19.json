@@ -1,66 +1,18 @@
 [
   {
-    "teams": "Tampa Bay Rays @ Boston Red Sox",
+    "teams": "光芒 @ 紅襪",
     "over_line": 8.5,
     "under_line": 8.5,
     "over_odds": 1.85,
     "under_odds": 1.85,
-    "source": "模擬數據"
+    "source": "Manual Input"
   },
   {
-    "teams": "New York Yankees @ Toronto Blue Jays",
+    "teams": "洋基 @ 藍鳥",
     "over_line": 9.0,
     "under_line": 9.0,
     "over_odds": 1.9,
     "under_odds": 1.8,
-    "source": "模擬數據"
-  },
-  {
-    "teams": "Los Angeles Dodgers @ San Francisco Giants",
-    "over_line": 8.0,
-    "under_line": 8.0,
-    "over_odds": 1.82,
-    "under_odds": 1.88,
-    "source": "模擬數據"
-  },
-  {
-    "teams": "Houston Astros @ Seattle Mariners",
-    "over_line": 7.5,
-    "under_line": 7.5,
-    "over_odds": 1.75,
-    "under_odds": 1.95,
-    "source": "模擬數據"
-  },
-  {
-    "teams": "Chicago Cubs @ St. Louis Cardinals",
-    "over_line": 9.5,
-    "under_line": 9.5,
-    "over_odds": 1.92,
-    "under_odds": 1.78,
-    "source": "模擬數據"
-  },
-  {
-    "teams": "Atlanta Braves @ Philadelphia Phillies",
-    "over_line": 8.5,
-    "under_line": 8.5,
-    "over_odds": 1.88,
-    "under_odds": 1.82,
-    "source": "模擬數據"
-  },
-  {
-    "teams": "Boston Red Sox @ Baltimore Orioles",
-    "over_line": 9.0,
-    "under_line": 9.0,
-    "over_odds": 1.85,
-    "under_odds": 1.85,
-    "source": "模擬數據"
-  },
-  {
-    "teams": "Los Angeles Angels @ Oakland Athletics",
-    "over_line": 8.5,
-    "under_line": 8.5,
-    "over_odds": 1.8,
-    "under_odds": 1.9,
-    "source": "模擬數據"
+    "source": "Manual Input"
   }
 ]
