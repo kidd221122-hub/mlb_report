@@ -756,33 +756,50 @@ def get_bullpen_season_stats(bullpen_ids, season=2026):
     if not bullpen_ids:
         return pd.DataFrame()
     
-    bullpen_list = []
-    processed_count = 0
-    total_count = len(bullpen_ids)
+    # 批次處理：每批 20 人，批次間隔 10 秒
+    BATCH_SIZE = 20
+    DELAY_BETWEEN_BATCHES = 10
     
-    for pid in bullpen_ids:
-        processed_count += 1
-        print(f"   [進度 {processed_count}/{total_count}] 正在獲取牛棚投手 ID: {pid} 的賽季統計...")
+    bullpen_list = []
+    total_count = len(bullpen_ids)
+    total_batches = (total_count + BATCH_SIZE - 1) // BATCH_SIZE
+    
+    for batch_idx in range(total_batches):
+        start = batch_idx * BATCH_SIZE
+        end = min(start + BATCH_SIZE, total_count)
+        batch = bullpen_ids[start:end]
         
-        p_stats = None
-        max_retries = 2
+        print(f"   📦 批次 {batch_idx + 1}/{total_batches}：處理 {len(batch)} 位投手")
         
-        for attempt in range(max_retries):
-            try:
-                if attempt > 0:
-                    wait_time = random.uniform(3.0, 6.0)
-                    print(f"      ⚠️ 重試中，等待 {wait_time:.1f} 秒...")
-                    time.sleep(wait_time)
-                
-                p_stats = get_pitcher_stats(pid, season=season)
-                break
-            except Exception as retry_err:
-                p_stats = None
-                if attempt == max_retries - 1:
-                    print(f"      ❌ 嘗試 {max_retries}次 後仍連線失敗，跳過投手 {pid}")
+        batch_results = []
+        for pid in batch:
+            p_stats = None
+            max_retries = 2
+            
+            for attempt in range(max_retries):
+                try:
+                    if attempt > 0:
+                        wait_time = random.uniform(3.0, 6.0)
+                        print(f"      ⚠️ 重試中，等待 {wait_time:.1f} 秒...")
+                        time.sleep(wait_time)
+                    
+                    p_stats = get_pitcher_stats(pid, season=season)
+                    break
+                except Exception as retry_err:
+                    p_stats = None
+                    if attempt == max_retries - 1:
+                        print(f"      ❌ 嘗試 {max_retries}次 後仍連線失敗，跳過投手 {pid}")
+            
+            if p_stats is not None and isinstance(p_stats, pd.DataFrame) and not p_stats.empty:
+                batch_results.append(p_stats)
         
-        if p_stats is not None and isinstance(p_stats, pd.DataFrame) and not p_stats.empty:
-            bullpen_list.append(p_stats)
+        bullpen_list.extend(batch_results)
+        
+        # 批次間歇（避免被 406 擋掉）
+        if batch_idx < total_batches - 1:
+            delay = DELAY_BETWEEN_BATCHES + random.uniform(0, 5)
+            print(f"   ⏳ 等待 {delay:.1f} 秒...")
+            time.sleep(delay)
     
     if bullpen_list:
         return pd.concat(bullpen_list, ignore_index=True)
@@ -874,31 +891,53 @@ if __name__ == "__main__":
     else:
         df_pitchers = pd.DataFrame()
     
-    # 步驟 4：收集所有牛棚投手 ID
-    all_bullpen_ids = set()
-    for _, row in df_games.iterrows():
-        away_bp = row.get("Away_Bullpen_IDS", "")
-        home_bp = row.get("Home_Bullpen_IDS", "")
-        
-        if away_bp and str(away_bp) != "nan":
-            for pid in str(away_bp).split("|"):
-                if pid.strip():
-                    all_bullpen_ids.add(int(pid.strip()))
-        
-        if home_bp and str(home_bp) != "nan":
-            for pid in str(home_bp).split("|"):
-                if pid.strip():
-                    all_bullpen_ids.add(int(pid.strip()))
+    # 步驟 4：只抓取「今天有出賽」的牛棚投手（避免 406 封鎖）
+    print("\n🎯 篩選今天有出賽的牛棚投手...")
+    active_bullpen_ids = []
+    games_processed = 0
     
-    print(f"\n🎯 經交叉比對，當日共需抓取 {len(all_bullpen_ids)} 位牛棚投手的賽季數據...")
+    for _, row in df_games.iterrows():
+        game_id = row["Game_ID"]
+        games_processed += 1
+        
+        # 從 boxscore 中提取今天有投球的牛棚投手
+        box_url = f"https://{MLB_BASE_URL}/game/{game_id}/boxscore"
+        try:
+            box_res = requests.get(box_url, headers=get_safe_headers(), timeout=10)
+            if box_res.status_code == 200:
+                box_data = box_res.json()
+                teams = box_data.get("teams", {})
+                
+                for side in ["away", "home"]:
+                    team_box = teams.get(side, {})
+                    players = team_box.get("players", {})
+                    
+                    # 檢查所有投手（包含先發和牛棚）
+                    for player_key, player_data in players.items():
+                        stats = player_data.get("stats", {}).get("pitching", {})
+                        
+                        # 如果有投球局數 > 0，表示今天有上場
+                        ip = stats.get("inningsPitched", "0")
+                        if ip and float(ip) > 0:
+                            # 提取投手 ID（從 player_key 如 "ID123456" 轉成 123456）
+                            if player_key.startswith("ID"):
+                                pid = int(player_key[2:])
+                                active_bullpen_ids.append(pid)
+        except Exception as e:
+            print(f"  ⚠️ 遊戲 {game_id} boxscore 抓取失敗: {e}")
+            continue
+    
+    # 去重
+    active_bullpen_ids = list(set(active_bullpen_ids))
+    print(f"✅ 從 {games_processed} 場比賽中篩選出 {len(active_bullpen_ids)} 位今天有出賽的牛棚投手")
     
     # 步驟 5：抓取牛棚投手賽季數據
-    if all_bullpen_ids:
+    if active_bullpen_ids:
         print("📡 正在抓取牛棚投手賽季數據...")
-        df_bullpen = get_bullpen_season_stats(list(all_bullpen_ids), season=current_season)
+        df_bullpen = get_bullpen_season_stats(active_bullpen_ids, season=current_season)
     else:
         df_bullpen = pd.DataFrame()
-        print("⚠️ 當日無牛棚投手數據需要抓取。")
+        print("ℹ️ 當日無牛棚投手出賽數據。")
     
     # 步驟 6：寫入 Google Sheets
     print("\n☁️ 正在連線至 Google Sheets 進行智慧同步 (Upsert)...")
